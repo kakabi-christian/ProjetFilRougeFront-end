@@ -1,5 +1,5 @@
 // src/services/paiementService.js
-import api from './api.js'; // Assure-toi que le chemin et l'extension sont corrects
+import api from './api.js';
 
 /**
  * Créer un paiement et générer le reçu
@@ -28,10 +28,60 @@ export const createPaiement = async (paiementData) => {
 };
 
 /**
+ * 🔐 ÉTAPE 1 : Demander un code OTP pour récupérer le reçu
+ * @param {string} email
+ */
+export const requestOtp = async (email) => {
+  console.log('[requestOtp] Demande d\'OTP pour email :', email);
+
+  try {
+    const response = await api.post('/paiement/recu/request-otp', { email });
+    console.log('[requestOtp] Réponse reçue :', response.data);
+    return response.data; // { message, email }
+  } catch (error) {
+    console.error('[requestOtp] Erreur lors de la demande d\'OTP :', error);
+    if (error.response) {
+      console.error('[requestOtp] Détails de la réponse erreur :', error.response.data);
+      console.error('[requestOtp] Status code :', error.response.status);
+    }
+    throw error;
+  } finally {
+    console.log('[requestOtp] Fin de la fonction requestOtp.');
+  }
+};
+
+/**
+ * 🔐 ÉTAPE 2 : Vérifier l'OTP et récupérer le reçu
+ * @param {string} email
+ * @param {string} code - Code OTP à 6 chiffres
+ */
+export const verifyOtpAndGetRecu = async (email, code) => {
+  console.log('[verifyOtpAndGetRecu] Vérification OTP pour email :', email);
+  console.log('[verifyOtpAndGetRecu] Code saisi :', code);
+
+  try {
+    const response = await api.post('/paiement/recu/verify-otp', { email, code });
+    console.log('[verifyOtpAndGetRecu] Réponse reçue :', response.data);
+    return response.data; // reçu complet avec QR Code
+  } catch (error) {
+    console.error('[verifyOtpAndGetRecu] Erreur lors de la vérification :', error);
+    if (error.response) {
+      console.error('[verifyOtpAndGetRecu] Détails de la réponse erreur :', error.response.data);
+      console.error('[verifyOtpAndGetRecu] Status code :', error.response.status);
+    }
+    throw error;
+  } finally {
+    console.log('[verifyOtpAndGetRecu] Fin de la fonction verifyOtpAndGetRecu.');
+  }
+};
+
+/**
+ * ⚠️ DEPRECATED : Ancienne méthode sans OTP (à conserver pour compatibilité)
  * Récupérer un reçu par email (fonction "j'ai oublié mon numéro de reçu")
  * @param {string} email
  */
 export const findRecuByEmail = async (email) => {
+  console.warn('[findRecuByEmail] ⚠️ Cette méthode est dépréciée. Utilisez requestOtp() et verifyOtpAndGetRecu() à la place.');
   console.log('[findRecuByEmail] Recherche du reçu pour email :', email);
 
   try {

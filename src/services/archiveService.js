@@ -1,19 +1,96 @@
 import api from './api.js';
 
-// Récupérer la liste des années
-export const getAnnees = () => api.get('/annees');
+// ==================== ANNEES ====================
+export const getAnnees = async () => {
+  console.log('📡 [API] Appel : GET /annees');
+  try {
+    const response = await api.get('/annees');
+    console.log('✅ [API] Années reçues :', response.data);
+    return response;
+  } catch (error) {
+    console.error('❌ [API] Erreur getAnnees :', error);
+    throw error;
+  }
+};
 
-// Récupérer la liste des départements
-export const getDepartements = () => api.get('/departements');
+// ==================== DEPARTEMENTS ====================
+export const getDepartements = async () => {
+  console.log('📡 [API] Appel : GET /departements');
+  try {
+    const response = await api.get('/departements');
+    console.log('✅ [API] Départements reçus :', response.data);
+    return response;
+  } catch (error) {
+    console.error('❌ [API] Erreur getDepartements :', error);
+    throw error;
+  }
+};
 
-// Récupérer les filières d’un département
-export const getFilieresByDepartement = (id) =>
-  api.get(`/filieres/departement/${id}`);
+// ==================== FILIERES ====================
+export const getFilieresByDepartement = async (id) => {
+  console.log('📡 [API] Appel : GET /filieres/departement/', id);
+  if (!id) {
+    console.warn('⚠️ [API] ID département manquant');
+  }
 
-// Récupérer les épreuves d’une filière
-export const getEpreuvesByFiliere = (id) =>
-  api.get(`/epreuves/filiere/${id}`);
+  try {
+    const response = await api.get(`/filieres/departement/${id}`);
+    console.log(
+      `✅ [API] Filières reçues pour le département ${id} :`,
+      response.data
+    );
+    return response;
+  } catch (error) {
+    console.error(
+      `❌ [API] Erreur getFilieresByDepartement (id=${id}) :`,
+      error
+    );
+    throw error;
+  }
+};
 
-// Récupérer les archives d’une épreuve
-export const getArchivesByEpreuve = (id) =>
-  api.get(`/archives/epreuve/${id}`);
+// ==================== EPREUVES ====================
+export const getEpreuvesByFiliere = async (id) => {
+  console.log('📡 [API] Appel : GET /epreuves/filiere/', id);
+  if (!id) {
+    console.warn('⚠️ [API] ID filière manquant');
+  }
+
+  try {
+    const response = await api.get(`/epreuves/filiere/${id}`);
+    console.log(
+      `✅ [API] Épreuves reçues pour la filière ${id} :`,
+      response.data
+    );
+    return response;
+  } catch (error) {
+    console.error(
+      `❌ [API] Erreur getEpreuvesByFiliere (id=${id}) :`,
+      error
+    );
+    throw error;
+  }
+};
+
+// ==================== ARCHIVES ====================
+export const getArchivesByEpreuve = async (id) => {
+  console.log('📡 [API] Appel : GET /archives/epreuve/', id);
+  if (!id) {
+    console.warn('⚠️ [API] ID épreuve manquant');
+  }
+
+  try {
+    const response = await api.get(`/archives/epreuve/${id}`);
+    console.log(
+      `✅ [API] Archives reçues pour l’épreuve ${id} :`,
+      response.data
+    );
+    return response;
+  } catch (error) {
+    console.error(
+      `❌ [API] Erreur getArchivesByEpreuve (id=${id}) :`,
+      error
+    );
+    throw error;
+  }
+};
