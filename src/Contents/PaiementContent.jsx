@@ -5,6 +5,7 @@ import { createPaiement } from '../services/paiementService';
 import { generatePDF } from '../services/pdfService';
 import LogoMTN from '../Assets/logo-mtn.jpg';
 import LogoOrange from '../Assets/logo-orange.jpg';
+import { Link } from 'react-router-dom'; // Import de Link pour la navigation
 
 export default function PaiementContent() {
   const [concours, setConcours] = useState([]);
@@ -125,9 +126,15 @@ export default function PaiementContent() {
             </div>
           </div>
 
-          <button className="btn btn-success" type="submit">
-            Payer
-          </button>
+         <div className="d-flex align-items-center gap-2 mb-3">
+            <button className="btn btn-success" type="submit">
+                Payer
+            </button>
+            <Link to="/ForgotRecu" className="btn btn-danger">
+                J'ai oublié mon numéro de reçu
+            </Link>
+        </div>
+
         </form>
       ) : (
         <div className="mt-4">
@@ -145,7 +152,7 @@ export default function PaiementContent() {
             >
               Télécharger le PDF
             </button>
-          </div>
+          </div>          
         </div>
       )}
     </div>

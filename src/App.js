@@ -7,7 +7,8 @@ import Login from './Pages/Login';
 import Archive from './Pages/Archive';
 import Paiement from './Pages/Paiement';
 import Site from './Pages/Site';
-
+import ForgotRecu from './Components/ForgotRecu';
+import RecuForgot from './Pages/RecuForgot';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
               <Route path='/Site' element={<Site />} />
               <Route path='/Register' element={<Register />} />
               <Route path='/Login' element={<Login />} />
+              <Route path='/ForgotRecu' element={<RecuForgot />} />
             </Routes>
             
           </Router>
