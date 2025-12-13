@@ -49,23 +49,23 @@ export const getFilieresByDepartement = async (id) => {
   }
 };
 
-// ==================== EPREUVES ====================
-export const getEpreuvesByFiliere = async (id) => {
-  console.log('📡 [API] Appel : GET /epreuves/filiere/', id);
-  if (!id) {
-    console.warn('⚠️ [API] ID filière manquant');
+// ==================== EPREUVES PAR SPECIALITE ====================
+export const getEpreuvesBySpecialite = async (specialiteId) => {
+  console.log('📡 [API] Appel : GET /epreuves/specialite/', specialiteId);
+  if (!specialiteId) {
+    console.warn('⚠️ [API] ID spécialité manquant');
   }
 
   try {
-    const response = await api.get(`/epreuves/filiere/${id}`);
+    const response = await api.get(`/epreuves/specialite/${specialiteId}`);
     console.log(
-      `✅ [API] Épreuves reçues pour la filière ${id} :`,
+      `✅ [API] Épreuves reçues pour la spécialité ${specialiteId} :`,
       response.data
     );
     return response;
   } catch (error) {
     console.error(
-      `❌ [API] Erreur getEpreuvesByFiliere (id=${id}) :`,
+      `❌ [API] Erreur getEpreuvesBySpecialite (id=${specialiteId}) :`,
       error
     );
     throw error;

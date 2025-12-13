@@ -98,4 +98,22 @@ export const findRecuByEmail = async (email) => {
   } finally {
     console.log('[findRecuByEmail] Fin de la fonction findRecuByEmail.');
   }
+  
 };
+
+
+export const verifyRecuForRegistration = async (numeroRecu) => {
+  console.log('[verifyRecuForRegistration] Vérification du reçu:', numeroRecu);
+
+  try {
+    const response = await api.post('/paiement/inscription/verify-recu', { numeroRecu });
+    console.log('[verifyRecuForRegistration] Réponse reçue :', response.data);
+    return response.data; // { message, numeroRecu, paiement: {...} }
+  } catch (error) {
+    console.error('[verifyRecuForRegistration] Erreur:', error);
+    if (error.response) {
+      console.error('[verifyRecuForRegistration] Détails erreur:', error.response.data);
+    }
+    throw error;
+  }
+}

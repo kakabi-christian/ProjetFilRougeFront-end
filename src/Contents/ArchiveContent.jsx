@@ -1,10 +1,10 @@
-// src/Contents/ArchiveContent.jsx
+// src/components/ArchiveContent.jsx
 import React, { useState, useEffect } from 'react';
 import {
   getAnnees,
   getDepartements,
   getFilieresByDepartement,
-  getEpreuvesByFiliere,
+  getEpreuvesBySpecialite,
   getArchivesByEpreuve,
 } from '../services/archiveService';
 
@@ -12,15 +12,16 @@ export default function ArchiveContent() {
   const [annees, setAnnees] = useState([]);
   const [departements, setDepartements] = useState([]);
   const [filieres, setFilieres] = useState([]);
+  const [specialites, setSpecialites] = useState([]);
   const [epreuves, setEpreuves] = useState([]);
   const [archives, setArchives] = useState([]);
 
   const [selectedAnnee, setSelectedAnnee] = useState('');
   const [selectedDepartement, setSelectedDepartement] = useState('');
   const [selectedFiliere, setSelectedFiliere] = useState('');
+  const [selectedSpecialite, setSelectedSpecialite] = useState('');
   const [selectedEpreuve, setSelectedEpreuve] = useState('');
 
-  // 🔹 URL de base de votre backend NestJS
   const API_BASE_URL = 'http://localhost:3000';
 
   // Charger les années et départements
@@ -29,162 +30,151 @@ export default function ArchiveContent() {
     getDepartements().then(res => setDepartements(res.data));
   }, []);
 
-  // Charger les filières quand un département est sélectionné
+  // Charger les filières
   useEffect(() => {
     if (selectedDepartement) {
       getFilieresByDepartement(selectedDepartement).then(res => setFilieres(res.data));
+      setSpecialites([]);
       setEpreuves([]);
       setArchives([]);
       setSelectedFiliere('');
+      setSelectedSpecialite('');
       setSelectedEpreuve('');
+    } else {
+      setFilieres([]);
     }
   }, [selectedDepartement]);
 
-  // Charger les épreuves quand une filière est sélectionnée
+  // Charger les spécialités
   useEffect(() => {
     if (selectedFiliere) {
-      getEpreuvesByFiliere(selectedFiliere).then(res => setEpreuves(res.data));
+      const filiere = filieres.find(f => f.id === selectedFiliere);
+      setSpecialites(filiere?.specialites || []);
+      setEpreuves([]);
+      setArchives([]);
+      setSelectedSpecialite('');
+      setSelectedEpreuve('');
+    } else {
+      setSpecialites([]);
+    }
+  }, [selectedFiliere, filieres]);
+
+  // Charger les épreuves
+  useEffect(() => {
+    if (selectedSpecialite) {
+      getEpreuvesBySpecialite(selectedSpecialite).then(res => setEpreuves(res.data));
       setArchives([]);
       setSelectedEpreuve('');
+    } else {
+      setEpreuves([]);
     }
-  }, [selectedFiliere]);
+  }, [selectedSpecialite]);
 
-  // Charger les archives quand une épreuve est sélectionnée
+  // Charger les archives
   useEffect(() => {
     if (selectedEpreuve) {
       getArchivesByEpreuve(selectedEpreuve).then(res => {
-        // ✅ Construire l'URL complète avec l'URL du backend
         const dataWithFullUrl = res.data.map(a => ({
           ...a,
-          // Si fileUrl commence par '/', on ajoute l'URL du backend
-          fileUrl: a.fileUrl?.startsWith('http') 
-            ? a.fileUrl 
-            : `${API_BASE_URL}${a.fileUrl}`,
+          fileUrl: a.fileUrl?.startsWith('http') ? a.fileUrl : `${API_BASE_URL}${a.fileUrl}`,
         }));
         setArchives(dataWithFullUrl);
       });
+    } else {
+      setArchives([]);
     }
   }, [selectedEpreuve]);
 
   return (
-    <div className="container mt-5">
-      <h2>Archives des épreuves</h2>
+    <div className="container mt-5 mb-5">
+      <div className="card p-4 shadow">
+        <h2 className="text-center mb-4">Archives des épreuves</h2>
 
-      {/* Sélection de l'année */}
-      <div className="mb-3">
-        <label>Année:</label>
-        <select
-          className="form-select"
-          value={selectedAnnee}
-          onChange={e => setSelectedAnnee(e.target.value)}
-        >
-          <option value="">-- Sélectionner une année --</option>
-          {annees.map(a => (
-            <option key={a.id} value={a.id}>
-              {a.libelle}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Sélection du département */}
-      <div className="mb-3">
-        <label>Département:</label>
-        <select
-          className="form-select"
-          value={selectedDepartement}
-          onChange={e => setSelectedDepartement(e.target.value)}
-        >
-          <option value="">-- Sélectionner un département --</option>
-          {departements.map(d => (
-            <option key={d.id} value={d.id}>
-              {d.nomDep}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Sélection de la filière */}
-      {filieres.length > 0 && (
+        {/* Année */}
         <div className="mb-3">
-          <label>Filière:</label>
-          <select
-            className="form-select"
-            value={selectedFiliere}
-            onChange={e => setSelectedFiliere(e.target.value)}
-          >
-            <option value="">-- Sélectionner une filière --</option>
-            {filieres.map(f => (
-              <option key={f.id} value={f.id}>
-                {f.intitule}
-              </option>
-            ))}
+          <label className="form-label">Année :</label>
+          <select className="form-select" value={selectedAnnee} onChange={e => setSelectedAnnee(e.target.value)}>
+            <option value="">-- Sélectionner une année --</option>
+            {annees.map(a => <option key={a.id} value={a.id}>{a.libelle}</option>)}
           </select>
+          {!annees.length && <small className="text-muted">Aucune année disponible.</small>}
         </div>
-      )}
 
-      {/* Sélection de l'épreuve */}
-      {epreuves.length > 0 && (
+        {/* Département */}
         <div className="mb-3">
-          <label>Épreuve:</label>
-          <select
-            className="form-select"
-            value={selectedEpreuve}
-            onChange={e => setSelectedEpreuve(e.target.value)}
-          >
-            <option value="">-- Sélectionner une épreuve --</option>
-            {epreuves.map(ep => (
-              <option key={ep.id} value={ep.id}>
-                {ep.nomEpreuve}
-              </option>
-            ))}
+          <label className="form-label">Département :</label>
+          <select className="form-select" value={selectedDepartement} onChange={e => setSelectedDepartement(e.target.value)}>
+            <option value="">-- Sélectionner un département --</option>
+            {departements.map(d => <option key={d.id} value={d.id}>{d.nomDep}</option>)}
           </select>
+          {selectedDepartement && filieres.length === 0 && <small className="text-muted">Aucune filière disponible.</small>}
         </div>
-      )}
 
-      {/* Affichage des archives */}
-      {archives.length > 0 && (
-        <div className="mt-4">
-          <h4>Archives disponibles:</h4>
-          <ul className="list-group">
-            {archives.map(a => (
-              <li key={a.id} className="list-group-item">
-                {a.fileUrl?.endsWith('.pdf') ? (
-                  <a href={a.fileUrl} target="_blank" rel="noopener noreferrer">
-                    📄 Voir le PDF
-                  </a>
-                ) : (
-                  <div>
-                    <img
-                      src={a.fileUrl}
-                      alt="Archive"
-                      style={{ 
-                        maxWidth: '400px', 
-                        maxHeight: '400px', 
-                        objectFit: 'contain',
-                        display: 'block',
-                        margin: '10px 0'
-                      }}
-                      onError={(e) => {
-                        console.error('Erreur de chargement image:', a.fileUrl);
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                    <small className="text-muted">URL: {a.fileUrl}</small>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+        {/* Filière */}
+        {filieres.length > 0 && (
+          <div className="mb-3">
+            <label className="form-label">Filière :</label>
+            <select className="form-select" value={selectedFiliere} onChange={e => setSelectedFiliere(e.target.value)}>
+              <option value="">-- Sélectionner une filière --</option>
+              {filieres.map(f => <option key={f.id} value={f.id}>{f.intitule}</option>)}
+            </select>
+          </div>
+        )}
+        {selectedFiliere && specialites.length === 0 && <small className="text-muted">Aucune spécialité disponible.</small>}
 
-      {/* Message si aucune archive */}
-      {selectedEpreuve && archives.length === 0 && (
-        <div className="alert alert-info mt-4">
-          Aucune archive disponible pour cette épreuve.
-        </div>
-      )}
+        {/* Spécialité */}
+        {specialites.length > 0 && (
+          <div className="mb-3">
+            <label className="form-label">Spécialité :</label>
+            <select className="form-select" value={selectedSpecialite} onChange={e => setSelectedSpecialite(e.target.value)}>
+              <option value="">-- Sélectionner une spécialité --</option>
+              {specialites.map(s => <option key={s.id} value={s.id}>{s.libelle}</option>)}
+            </select>
+          </div>
+        )}
+
+        {selectedSpecialite && epreuves.length === 0 && <small className="text-muted">Aucune épreuve disponible.</small>}
+
+        {/* Épreuve */}
+        {epreuves.length > 0 && (
+          <div className="mb-3">
+            <label className="form-label">Épreuve :</label>
+            <select className="form-select" value={selectedEpreuve} onChange={e => setSelectedEpreuve(e.target.value)}>
+              <option value="">-- Sélectionner une épreuve --</option>
+              {epreuves.map(ep => <option key={ep.id} value={ep.id}>{ep.nomEpreuve}</option>)}
+            </select>
+          </div>
+        )}
+
+        {/* Archives */}
+        {archives.length > 0 ? (
+          <div className="mt-4">
+            <h4>Archives disponibles :</h4>
+            <ul className="list-group">
+              {archives.map(a => (
+                <li key={a.id} className="list-group-item">
+                  {a.fileUrl?.endsWith('.pdf') ? (
+                    <a href={a.fileUrl} target="_blank" rel="noopener noreferrer">📄 Voir le PDF</a>
+                  ) : (
+                    <div>
+                      <img
+                        src={a.fileUrl}
+                        alt="Archive"
+                        className="img-fluid my-2"
+                        style={{ maxHeight: '400px', objectFit: 'contain' }}
+                        onError={e => { e.target.style.display = 'none'; }}
+                      />
+                      <small className="text-muted">URL: {a.fileUrl}</small>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : selectedEpreuve ? (
+          <div className="alert alert-info mt-4">Aucune archive disponible pour cette épreuve.</div>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -9,7 +9,7 @@ import Paiement from './Pages/Paiement';
 import Site from './Pages/Site';
 import ForgotRecu from './Components/ForgotRecu';
 import RecuForgot from './Pages/RecuForgot';
-
+import Step1Register from './Components/Step1Register';
 function App() {
   return (
           <Router>
@@ -22,6 +22,7 @@ function App() {
               <Route path='/Register' element={<Register />} />
               <Route path='/Login' element={<Login />} />
               <Route path='/ForgotRecu' element={<RecuForgot />} />
+              <Route path='/Step1Register' element={<Step1Register />} />
             </Routes>
             
           </Router>
