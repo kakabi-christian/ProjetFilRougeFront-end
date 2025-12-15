@@ -14,6 +14,7 @@ export default function Step3Register() {
   const [typeExamen, setTypeExamen] = useState('');
   const [serie, setSerie] = useState('');
   const [mention, setMention] = useState('');
+  // Utilisation de 'loading' pour l'animation
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -25,7 +26,7 @@ export default function Step3Register() {
     }
   }, [candidateId]);
 
-  if (!candidateId) {
+  if (!candidateId && !loading) {
     return (
       <div className="alert alert-danger text-center mt-5">
         Accès refusé. Veuillez reprendre l’inscription depuis l’étape 1.
@@ -35,7 +36,7 @@ export default function Step3Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoading(true); // Démarre l'animation
     setError(null);
 
     if (!typeExamen || !mention) {
@@ -54,6 +55,9 @@ export default function Step3Register() {
     };
 
     try {
+      // Simulation d'un délai de 2 secondes
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       await registerCandidateStep3(step3Data);
 
       // 🔹 Stocker candidateId pour l'étape suivante
@@ -65,16 +69,37 @@ export default function Step3Register() {
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Erreur lors de l’enregistrement des documents.');
     } finally {
+      // Le loading est coupé après la redirection, ou après l'erreur
       setLoading(false);
     }
   };
+  
+  // --- Rendu de l'état de traitement (Animation) ---
+  if (loading) {
+    return (
+      <div className="container mt-5 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
+        <div className="card shadow-lg p-5">
+          <h2 className='mb-4 text-primary'>Enregistrement de l'Étape 3 en cours...</h2>
+          {/* Animation de chargement Bootstrap */}
+          <div className="spinner-border text-primary" style={{ width: '4rem', height: '4rem' }} role="status">
+            <span className="visually-hidden">Enregistrement...</span>
+          </div>
+          <p className="mt-4 lead text-muted">Préparation de la dernière étape.</p>
+        </div>
+      </div>
+    );
+  }
 
+  // --- Rendu Principal ---
   return (
     <>
       <Header />
       <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
         <div className="card p-4" style={{ width: '100%', maxWidth: '500px' }}>
-          <h3 className="text-center mb-4">Inscription – Étape 3 (Documents)</h3>
+          <h3 className="text-center mb-4 text-primary fw-bold">
+                <i className="bi bi-geo-alt-fill me-2"></i> Étape 3/4 : Documents
+
+            </h3>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label className="form-label">Numéro CNI</label>
@@ -98,8 +123,19 @@ export default function Step3Register() {
                 {Object.values(TypeMention).map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
-            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-              {loading ? 'Enregistrement...' : 'Continuer'}
+            <button 
+              type="submit" 
+              className="btn btn-primary w-100" 
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Enregistrement...
+                </>
+              ) : (
+                'Continuer →'
+              )}
             </button>
             {error && <div className="alert alert-danger mt-3">{error}</div>}
           </form>

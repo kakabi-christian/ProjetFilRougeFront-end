@@ -100,23 +100,26 @@ export const registerCandidateStep4 = async (step4Data) => {
  * @param {string} password
  * @param {'ADMIN'|'CANDIDATE'} userType
  */
-export const loginUser = async (email, password, userType) => {
+export const loginUser = async ({ email, password, numeroRecu, userType }) => {
   try {
-    const response = await api.post('/auth/login', {
-      email,
-      password,
-      userType,
-    });
+    let payload = { userType, email };
+
+    if (userType === 'ADMIN') {
+      payload.password = password; // admin = email + password
+    } else if (userType === 'CANDIDATE') {
+      payload.numeroRecu = numeroRecu; // candidat = email + numeroRecu
+    }
+
+    const response = await api.post('/auth/login', payload);
     console.log('[loginUser] Réponse API:', response.data);
-    return response.data; // { access_token, permissions, user }
+    return response.data;
   } catch (error) {
     console.error('[loginUser] Erreur:', error);
-    if (error.response) {
-      console.error('Détails de l’erreur:', error.response.data);
-    }
+    if (error.response) console.error('Détails:', error.response.data);
     throw error;
   }
 };
+
 
 /**
  * 🔹 Inscription d’un Admin

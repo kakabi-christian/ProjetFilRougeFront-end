@@ -17,6 +17,8 @@ export default function PaiementContent() {
   const [modePaiement, setModePaiement] = useState('');
   const [paiement, setPaiement] = useState(null);
   const [recu, setRecu] = useState(null);
+  // NOUVEL ÉTAT : Pour gérer l'animation de chargement
+  const [isProcessing, setIsProcessing] = useState(false); 
 
   useEffect(() => {
     getConcours()
@@ -41,16 +43,41 @@ export default function PaiementContent() {
       modePaiement,
     };
 
+    // 1. Démarrer l'animation de chargement
+    setIsProcessing(true);
+
     try {
+      // Simulation d'un délai de traitement du paiement (ex: 2 secondes)
+      await new Promise(resolve => setTimeout(resolve, 2000)); 
+      
       const result = await createPaiement(paiementData);
       setPaiement(result.paiement);
       setRecu(result.recu);
     } catch (error) {
       console.error(error);
       alert('Erreur lors du paiement');
+    } finally {
+      // 2. Arrêter l'animation de chargement
+      setIsProcessing(false);
     }
   };
 
+  // --- Rendu de l'état de traitement (Animation) ---
+  if (isProcessing) {
+    return (
+      <div className="container mt-5 text-center d-flex flex-column align-items-center justify-content-center" style={{ height: '70vh' }}>
+        <h2 className='mb-4 text-success'>Transaction en cours de traitement...</h2>
+        {/* Animation de chargement Bootstrap */}
+        <div className="spinner-border text-success" style={{ width: '4rem', height: '4rem' }} role="status">
+          <span className="visually-hidden">Traitement du paiement...</span>
+        </div>
+        <p className="mt-4 lead text-muted">Veuillez patienter pendant la validation du paiement.</p>
+        <p className='text-danger'>**NE PAS FERMER CETTE FENÊTRE**</p>
+      </div>
+    );
+  }
+  
+  // --- Rendu Principal ---
   return (
     <div className="container mt-5">
       <h2>Paiement des frais de concours</h2>
@@ -63,6 +90,7 @@ export default function PaiementContent() {
               className="form-select"
               value={selectedConcours}
               onChange={(e) => setSelectedConcours(e.target.value)}
+              required
             >
               <option value="">-- Choisir un concours --</option>
               {concours.map((c) => (
@@ -79,6 +107,7 @@ export default function PaiementContent() {
               className="form-control"
               value={nomComplet}
               onChange={(e) => setNomComplet(e.target.value)}
+              required
             />
           </div>
 
@@ -88,6 +117,7 @@ export default function PaiementContent() {
               className="form-control"
               value={prenom}
               onChange={(e) => setPrenom(e.target.value)}
+              required
             />
           </div>
 
@@ -98,6 +128,7 @@ export default function PaiementContent() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
@@ -107,6 +138,7 @@ export default function PaiementContent() {
               className="form-control"
               value={telephone}
               onChange={(e) => setTelephone(e.target.value)}
+              required
             />
           </div>
 
@@ -120,6 +152,7 @@ export default function PaiementContent() {
                   value="MTN_MOMO"
                   checked={modePaiement === 'MTN_MOMO'}
                   onChange={(e) => setModePaiement(e.target.value)}
+                  required
                 />
                 <img src={LogoMTN} alt="MTN Momo" width={100} />
               </label>
@@ -130,6 +163,7 @@ export default function PaiementContent() {
                   value="ORANGE_MONEY"
                   checked={modePaiement === 'ORANGE_MONEY'}
                   onChange={(e) => setModePaiement(e.target.value)}
+                  required
                 />
                 <img src={LogoOrange} alt="Orange Money" width={100} />
               </label>
@@ -137,7 +171,13 @@ export default function PaiementContent() {
           </div>
 
           <div className="d-flex align-items-center gap-2 mb-3">
-            <button className="btn btn-success" type="submit">Payer</button>
+            <button 
+              className="btn btn-success" 
+              type="submit"
+              disabled={isProcessing} // Le bouton est désactivé pendant le chargement
+            >
+              Payer
+            </button>
             <Link to="/ForgotRecu" className="btn btn-danger">
               J'ai oublié mon numéro de reçu
             </Link>

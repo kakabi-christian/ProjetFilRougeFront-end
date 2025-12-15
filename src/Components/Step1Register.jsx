@@ -17,7 +17,8 @@ export default function Step1Register() {
   const [email, setEmail] = useState('');
   const [telephone, setTelephone] = useState('');
   const [region, setRegion] = useState('');
-  const [loading, setLoading] = useState(false);
+  // L'état 'loading' est utilisé pour l'animation pleine page
+  const [loading, setLoading] = useState(false); 
   const [error, setError] = useState(null);
 
   // 🔹 Pré-remplir avec les infos du paiement
@@ -32,7 +33,7 @@ export default function Step1Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoading(true); // Démarre l'animation de chargement
     setError(null);
 
     if (!nom || !prenom || !email || !telephone || !region) {
@@ -50,6 +51,9 @@ export default function Step1Register() {
     };
 
     try {
+      // Simulation d'un délai de 2 secondes avant l'appel API
+      await new Promise(resolve => setTimeout(resolve, 2000)); 
+      
       const result = await registerCandidateStep1(userData);
       console.log('[Step1Register] Succès :', result);
 
@@ -67,29 +71,49 @@ export default function Step1Register() {
       console.error('[Step1Register] Erreur :', err);
       setError(
         err.response?.data?.message ||
-        'Erreur lors de l’inscription'
+        'Erreur lors de l’inscription. Veuillez vérifier l\'email.'
       );
     } finally {
-      setLoading(false);
+      // Le loading est coupé après la redirection, ou après l'erreur
+      // S'il y a erreur, on le coupe ici. S'il y a succès, la navigation gère la fin du rendu.
+      if (!error) setLoading(false); 
     }
   };
+  
+  // --- Rendu de l'état de traitement (Animation) ---
+  if (loading) {
+    return (
+      <div className="container mt-5 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
+        <div className="card shadow-lg p-5">
+            <h2 className='mb-4 text-primary'>Enregistrement de l'Étape 1 en cours...</h2>
+            {/* Animation de chargement Bootstrap */}
+            <div className="spinner-border text-primary" style={{ width: '4rem', height: '4rem' }} role="status">
+            <span className="visually-hidden">Enregistrement...</span>
+            </div>
+            <p className="mt-4 lead text-muted">Préparation de la prochaine étape du formulaire.</p>
+        </div>
+      </div>
+    );
+  }
 
+  // --- Rendu Principal ---
   return (
     <>
       <Header />
 
       <div
-        className="container d-flex justify-content-center align-items-center"
+        className="container d-flex justify-content-center align-items-center my-5"
         style={{ minHeight: '80vh' }}
       >
-        <div className="card p-4" style={{ width: '100%', maxWidth: '500px' }}>
-          <h3 className="card-title mb-4 text-center">
-            Inscription – Étape 1
+        <div className="card p-4 shadow-lg border-0" style={{ width: '100%', maxWidth: '550px' }}>
+          <h3 className="card-title mb-4 text-center text-primary fw-bold">
+            <i className="bi bi-file-earmark-person me-2"></i> Inscription – Étape 1/4
           </h3>
 
           <form onSubmit={handleSubmit}>
+            {/* Nom */}
             <div className="mb-3">
-              <label className="form-label">Nom</label>
+              <label className="form-label fw-medium"><i className="bi bi-person-fill me-2"></i> Nom</label>
               <input
                 type="text"
                 className="form-control"
@@ -99,8 +123,9 @@ export default function Step1Register() {
               />
             </div>
 
+            {/* Prénom */}
             <div className="mb-3">
-              <label className="form-label">Prénom</label>
+              <label className="form-label fw-medium"><i className="bi bi-person-fill me-2"></i> Prénom</label>
               <input
                 type="text"
                 className="form-control"
@@ -110,8 +135,9 @@ export default function Step1Register() {
               />
             </div>
 
+            {/* Email */}
             <div className="mb-3">
-              <label className="form-label">Email</label>
+              <label className="form-label fw-medium"><i className="bi bi-envelope-fill me-2"></i> Email</label>
               <input
                 type="email"
                 className="form-control"
@@ -121,8 +147,9 @@ export default function Step1Register() {
               />
             </div>
 
+            {/* Téléphone */}
             <div className="mb-3">
-              <label className="form-label">Téléphone</label>
+              <label className="form-label fw-medium"><i className="bi bi-phone-fill me-2"></i> Téléphone</label>
               <input
                 type="text"
                 className="form-control"
@@ -132,8 +159,9 @@ export default function Step1Register() {
               />
             </div>
 
-            <div className="mb-3">
-              <label className="form-label">Région</label>
+            {/* Région */}
+            <div className="mb-4">
+              <label className="form-label fw-medium"><i className="bi bi-map-fill me-2"></i> Région</label>
               <select
                 className="form-select"
                 value={region}
@@ -151,14 +179,22 @@ export default function Step1Register() {
 
             <button
               type="submit"
-              className="btn btn-primary w-100"
+              className="btn btn-primary w-100 btn-lg"
               disabled={loading}
             >
-              {loading ? 'Inscription...' : 'Suivant →'}
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Enregistrement...
+                </>
+              ) : (
+                'Suivant →'
+              )}
             </button>
 
             {error && (
-              <div className="alert alert-danger mt-3">
+              <div className="alert alert-danger mt-3 text-center">
+                <i className="bi bi-exclamation-triangle-fill me-2"></i>
                 {error}
               </div>
             )}
