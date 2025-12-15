@@ -102,12 +102,14 @@ export const registerCandidateStep4 = async (step4Data) => {
  */
 export const loginUser = async ({ email, password, numeroRecu, userType }) => {
   try {
-    let payload = { userType, email };
+    let payload = { userType };
 
     if (userType === 'ADMIN') {
-      payload.password = password; // admin = email + password
+      payload.email = email;       // admin = email + password
+      payload.password = password;
     } else if (userType === 'CANDIDATE') {
-      payload.numeroRecu = numeroRecu; // candidat = email + numeroRecu
+      payload.numeroRecu = numeroRecu; // candidat = numeroRecu + password
+      payload.password = password;
     }
 
     const response = await api.post('/auth/login', payload);
@@ -119,6 +121,7 @@ export const loginUser = async ({ email, password, numeroRecu, userType }) => {
     throw error;
   }
 };
+
 
 
 /**

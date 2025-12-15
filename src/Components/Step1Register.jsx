@@ -17,6 +17,7 @@ export default function Step1Register() {
   const [email, setEmail] = useState('');
   const [telephone, setTelephone] = useState('');
   const [region, setRegion] = useState('');
+  const [password, setPassword] = useState('');
   // L'état 'loading' est utilisé pour l'animation pleine page
   const [loading, setLoading] = useState(false); 
   const [error, setError] = useState(null);
@@ -45,7 +46,9 @@ export default function Step1Register() {
     const userData = {
       nom,
       prenom,
+     
       email,
+      password,
       telephone,
       region,
     };
@@ -143,6 +146,17 @@ export default function Step1Register() {
                 className="form-control"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            {/* Password */}
+            <div className="mb-3">
+              <label className="form-label fw-medium"><i className="bi bi-lock-fill me-2"></i> Mot de passe</label>
+              <input
+                type="password"
+                className="form-control"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
