@@ -96,7 +96,7 @@ export default function Header() {
                   color: "white",
                   borderRadius: "8px",
                 }}
-                to="/Connexion"
+                to="/Login"
               >
                 <i className="fas fa-sign-in-alt"></i>
                 Connexion
@@ -109,7 +109,7 @@ export default function Header() {
                   color: "white",
                   borderRadius: "8px",
                 }}
-                to="/Inscription"
+                to="/Register"
               >
                 <i className="fas fa-user-plus"></i>
                 Inscription

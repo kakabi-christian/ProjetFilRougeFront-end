@@ -1,14 +1,14 @@
-import React from 'react'
 import Header from '../Components/Header'
 import Footer from '../Components/Footer'
-import VerifyRecu from '../Components/VerifyRecu'
-export default function Register() {
+import ForgotRecu from '../Components/ForgotRecu'
+import React from 'react'
+
+export default function RecuForgot() {
   return (
     <div>
       <Header />
-      <VerifyRecu />
+      <ForgotRecu />
       <Footer />
-    
     </div>
   )
 }
