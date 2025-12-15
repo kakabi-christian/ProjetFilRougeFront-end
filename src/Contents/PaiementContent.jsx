@@ -5,20 +5,20 @@ import { createPaiement } from '../services/paiementService';
 import { generatePDF } from '../services/pdfService';
 import LogoMTN from '../Assets/logo-mtn.jpg';
 import LogoOrange from '../Assets/logo-orange.jpg';
-import { Link } from 'react-router-dom'; // Import de Link pour la navigation
+import { Link } from 'react-router-dom';
 
 export default function PaiementContent() {
   const [concours, setConcours] = useState([]);
   const [selectedConcours, setSelectedConcours] = useState('');
   const [nomComplet, setNomComplet] = useState('');
+  const [prenom, setPrenom] = useState('');
   const [email, setEmail] = useState('');
   const [telephone, setTelephone] = useState('');
   const [modePaiement, setModePaiement] = useState('');
-  const [paiement, setPaiement] = useState(null); // paiement généré
-  const [recu, setRecu] = useState(null);         // reçu généré
+  const [paiement, setPaiement] = useState(null);
+  const [recu, setRecu] = useState(null);
 
   useEffect(() => {
-    // récupérer les concours depuis le backend
     getConcours()
       .then((data) => setConcours(data))
       .catch(console.error);
@@ -26,22 +26,23 @@ export default function PaiementContent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedConcours || !nomComplet || !email || !telephone || !modePaiement) {
+
+    if (!selectedConcours || !nomComplet || !prenom || !email || !telephone || !modePaiement) {
       alert('Veuillez remplir tous les champs');
       return;
     }
 
     const paiementData = {
       nomComplet,
+      prenom, // cohérence avec backend
       email,
       telephone,
-      concoursId: selectedConcours,
+      concoursId: selectedConcours, // ID du concours sélectionné
       modePaiement,
     };
 
     try {
       const result = await createPaiement(paiementData);
-      // inclure le paiement dans le reçu pour le PDF
       setPaiement(result.paiement);
       setRecu(result.recu);
     } catch (error) {
@@ -78,6 +79,15 @@ export default function PaiementContent() {
               className="form-control"
               value={nomComplet}
               onChange={(e) => setNomComplet(e.target.value)}
+            />
+          </div>
+
+          <div className="mb-3">
+            <label>Prénom:</label>
+            <input
+              className="form-control"
+              value={prenom}
+              onChange={(e) => setPrenom(e.target.value)}
             />
           </div>
 
@@ -126,15 +136,12 @@ export default function PaiementContent() {
             </div>
           </div>
 
-         <div className="d-flex align-items-center gap-2 mb-3">
-            <button className="btn btn-success" type="submit">
-                Payer
-            </button>
+          <div className="d-flex align-items-center gap-2 mb-3">
+            <button className="btn btn-success" type="submit">Payer</button>
             <Link to="/ForgotRecu" className="btn btn-danger">
-                J'ai oublié mon numéro de reçu
+              J'ai oublié mon numéro de reçu
             </Link>
-        </div>
-
+          </div>
         </form>
       ) : (
         <div className="mt-4">
@@ -152,7 +159,7 @@ export default function PaiementContent() {
             >
               Télécharger le PDF
             </button>
-          </div>          
+          </div>
         </div>
       )}
     </div>

@@ -1,4 +1,3 @@
-// src/services/paiementService.js
 import api from './api.js';
 
 /**
@@ -77,7 +76,7 @@ export const verifyOtpAndGetRecu = async (email, code) => {
 
 /**
  * ⚠️ DEPRECATED : Ancienne méthode sans OTP (à conserver pour compatibilité)
- * Récupérer un reçu par email (fonction "j'ai oublié mon numéro de reçu")
+ * Récupérer un reçu par email
  * @param {string} email
  */
 export const findRecuByEmail = async (email) => {
@@ -98,10 +97,12 @@ export const findRecuByEmail = async (email) => {
   } finally {
     console.log('[findRecuByEmail] Fin de la fonction findRecuByEmail.');
   }
-  
 };
 
-
+/**
+ * Vérifier un reçu pour l’inscription
+ * @param {string} numeroRecu
+ */
 export const verifyRecuForRegistration = async (numeroRecu) => {
   console.log('[verifyRecuForRegistration] Vérification du reçu:', numeroRecu);
 
@@ -116,4 +117,25 @@ export const verifyRecuForRegistration = async (numeroRecu) => {
     }
     throw error;
   }
-}
+};
+
+/**
+ * 🔹 Nouvelle méthode : récupérer les infos d’un paiement par numéro de reçu
+ * @param {string} numeroRecu
+ */
+export const getPaiementInfoByRecu = async (numeroRecu) => {
+  console.log('[getPaiementInfoByRecu] Récupération des infos pour le reçu:', numeroRecu);
+
+  try {
+    const response = await api.get(`/paiement/recu/${numeroRecu}/info`);
+    console.log('[getPaiementInfoByRecu] Réponse reçue :', response.data);
+    return response.data; // { nom, prenom, email, telephone, concours, montant }
+  } catch (error) {
+    console.error('[getPaiementInfoByRecu] Erreur lors de la récupération :', error);
+    if (error.response) {
+      console.error('[getPaiementInfoByRecu] Détails erreur :', error.response.data);
+      console.error('[getPaiementInfoByRecu] Status code :', error.response.status);
+    }
+    throw error;
+  }
+};

@@ -1,14 +1,13 @@
-// src/components/VerifyRecu.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { verifyRecuForRegistration } from '../services/paiementService';
+import { verifyRecuForRegistration, getPaiementInfoByRecu } from '../services/paiementService';
 
 export default function VerifyRecu() {
   const [numeroRecu, setNumeroRecu] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const navigate = useNavigate(); // 🔹 Hook pour la navigation
+  const navigate = useNavigate();
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -16,11 +15,18 @@ export default function VerifyRecu() {
     setError(null);
 
     try {
-      const data = await verifyRecuForRegistration(numeroRecu);
-      console.log('[VerifyRecu] Reçu validé :', data);
+      // Vérifie le reçu
+      const recuData = await verifyRecuForRegistration(numeroRecu);
+      console.log('[VerifyRecu] Reçu validé :', recuData);
 
-      // Redirection vers Step1Register avec le numéro de reçu
-      navigate('/Step1Register', { state: { numeroRecu: numeroRecu } });
+      // Récupère les infos du paiement pour pré-remplir Step1Register
+      const paiementInfo = await getPaiementInfoByRecu(numeroRecu);
+      console.log('[VerifyRecu] Infos paiement :', paiementInfo);
+
+      // Redirection vers Step1Register avec les infos
+      navigate('/Step1Register', {
+        state: { numeroRecu, paiementInfo },
+      });
 
     } catch (err) {
       console.error('[VerifyRecu] Erreur :', err);

@@ -4,6 +4,7 @@
 export const Paiement = {
   id: '',
   nomComplet: '',
+  prenom: '',
   email: '',
   telephone: '',
   concoursId: '',
