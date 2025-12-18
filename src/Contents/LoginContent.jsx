@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 🔹 ajout
+import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../services/authService';
 
 export default function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [numeroRecu, setNumeroRecu] = useState('');
-  const [userType, setUserType] = useState('CANDIDATE'); // rôle par défaut
+  const [userType, setUserType] = useState('CANDIDATE'); 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate(); // 🔹 hook de navigation
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,7 +18,8 @@ export default function LoginContent() {
     setLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // simulation délai
+      // Simulation d'un petit délai pour le UX
+      await new Promise(resolve => setTimeout(resolve, 1500)); 
 
       let payload = { userType };
 
@@ -27,11 +28,21 @@ export default function LoginContent() {
         payload.password = password;
       } else if (userType === 'CANDIDATE') {
         payload.numeroRecu = numeroRecu;
-        payload.password = password; // 🔹 mot de passe obligatoire
+        payload.password = password; 
       }
 
       const data = await loginUser(payload);
       console.log('Login réussi :', data);
+
+      // ============================================================
+      // ✅ MISE À JOUR : SAUVEGARDE DU TOKEN ET DE L'UTILISATEUR
+      // ============================================================
+      if (data.access_token) {
+        localStorage.setItem('access_token', data.access_token);
+        // On stocke aussi l'objet user pour l'utiliser dans le header/profil
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+      // ============================================================
 
       // 🔹 Redirection selon le rôle
       if (data.user.userType === 'ADMIN') {
@@ -105,7 +116,7 @@ export default function LoginContent() {
                 className="form-control"
                 value={numeroRecu}
                 onChange={(e) => setNumeroRecu(e.target.value)}
-                placeholder="Entrez votre numéro de reçu de paiement"
+                placeholder="Entrez votre numéro de reçu"
                 required
               />
               <label className="form-label fw-medium mt-3"><i className="bi bi-lock-fill me-2"></i> Mot de passe</label>
@@ -120,7 +131,6 @@ export default function LoginContent() {
             </div>
           )}
 
-          {/* Bouton de connexion */}
           <button type="submit" className="btn btn-primary w-100 btn-lg" disabled={loading}>
             {loading ? (
               <>
@@ -132,7 +142,6 @@ export default function LoginContent() {
             )}
           </button>
 
-          {/* Affichage des erreurs */}
           {error && (
             <div className="alert alert-danger mt-3 text-center" role="alert">
               <i className="bi bi-exclamation-triangle-fill me-2"></i>

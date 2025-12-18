@@ -16,7 +16,16 @@ import AdminDashboard from './Pages/AdminDashboard';
 import StatistiqueContent from './Contents/StatistiqueContent';
 import ReportContent from './Contents/ReportContent';
 import GrapheContent from './Contents/GrapheContent';
-
+import CandidatComponent from './Components/CandidatComponet';
+import ProfileContent from './Components/ProfileContent';
+import DepartementComponent from './Components/DepartementComponent';
+import FiliereContent from './Components/FiliereContent';
+import ExamenCentreComponent from './Components/ExamenCentreComponent';
+import CentreDepotContent from './Components/CentreDepotContent';
+import SpecialiteComponent from './Components/SpecialiteComponent';
+import ConcourComponent from './Components/ConcourComponent';
+import AnneContent from './Contents/AnneContent';
+import SessionsContent from './Contents/SessionsContent';
 function App() {
   return (
     <Router>
@@ -41,6 +50,16 @@ function App() {
           <Route path='statistiques' element={<StatistiqueContent />} />
           <Route path='rapport' element={<ReportContent />} />
           <Route path='graphiques' element={<GrapheContent />} />
+          <Route path='candidats' element={<CandidatComponent />} />
+          <Route path='departements' element={<DepartementComponent />} />
+          <Route path='profile' element={<ProfileContent />} />
+          <Route path='filieres' element={<FiliereContent />} />
+          <Route path='centre-depot' element={<CentreDepotContent />} />
+          <Route path='centre-examen' element={<ExamenCentreComponent />} />
+          <Route path='specialites' element={<SpecialiteComponent />} />  
+          <Route path='concours' element={<ConcourComponent />} />
+          <Route path='annees' element={<AnneContent />} />
+          <Route path='sessions' element={<SessionsContent />} />
           {/* Tu pourras ajouter d'autres routes enfants ici */}
         </Route>
       </Routes>

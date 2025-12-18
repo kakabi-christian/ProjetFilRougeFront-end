@@ -1,49 +1,73 @@
-// src/services/concoursService.js
 import api from './api.js';
 
 /**
- * Récupérer tous les concours
+ * Récupérer tous les concours avec pagination et recherche
+ * @param {Object} params - { page, limit, search }
  */
-export const getConcours = async () => {
-  console.log('[getConcours] Début de la récupération des concours...');
+export const getConcours = async (params = {}) => {
+  console.log('[getConcours] Début avec paramètres :', params);
   try {
-    console.log('[getConcours] Appel de l\'API /concours...');
-    const response = await api.get('/concours');
-    console.log('[getConcours] Réponse reçue de l\'API :', response);
-    console.log('[getConcours] Données extraites :', response.data);
+    // L'objet params est passé ici pour générer l'URL : /concours?page=1&limit=10...
+    const response = await api.get('/concours', { params });
+    console.log('[getConcours] Réponse API reçue :', response.data);
     return response.data;
   } catch (error) {
-    console.error('[getConcours] Erreur lors de la récupération des concours :', error);
-    if (error.response) {
-      console.error('[getConcours] Détails de la réponse erreur :', error.response.data);
-      console.error('[getConcours] Status code :', error.response.status);
-    }
+    console.error('[getConcours] Erreur :', error);
     throw error;
   } finally {
-    console.log('[getConcours] Fin de la fonction getConcours.');
+    console.log('[getConcours] Fin de l\'appel.');
   }
 };
 
 /**
  * Récupérer un concours par ID
- * @param {string} id - ID du concours
  */
 export const getConcoursById = async (id) => {
-  console.log(`[getConcoursById] Début de la récupération du concours avec ID : ${id}`);
+  console.log(`[getConcoursById] ID demandé : ${id}`);
   try {
-    console.log(`[getConcoursById] Appel de l'API /concours/${id}...`);
     const response = await api.get(`/concours/${id}`);
-    console.log(`[getConcoursById] Réponse reçue de l'API :`, response);
-    console.log(`[getConcoursById] Données extraites :`, response.data);
     return response.data;
   } catch (error) {
-    console.error(`[getConcoursById] Erreur lors de la récupération du concours ${id} :`, error);
-    if (error.response) {
-      console.error(`[getConcoursById] Détails de la réponse erreur :`, error.response.data);
-      console.error(`[getConcoursById] Status code :`, error.response.status);
-    }
+    console.error(`[getConcoursById] Erreur ID ${id} :`, error);
     throw error;
-  } finally {
-    console.log(`[getConcoursById] Fin de la fonction getConcoursById pour ID : ${id}`);
+  }
+};
+
+/**
+ * Créer un concours
+ */
+export const createConcours = async (data) => {
+  try {
+    const response = await api.post('/concours', data);
+    return response.data;
+  } catch (error) {
+    console.error('[createConcours] Erreur :', error);
+    throw error;
+  }
+};
+
+/**
+ * Mettre à jour un concours
+ */
+export const updateConcours = async (id, data) => {
+  try {
+    const response = await api.patch(`/concours/${id}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('[updateConcours] Erreur :', error);
+    throw error;
+  }
+};
+
+/**
+ * Supprimer un concours
+ */
+export const deleteConcours = async (id) => {
+  try {
+    const response = await api.delete(`/concours/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('[deleteConcours] Erreur :', error);
+    throw error;
   }
 };

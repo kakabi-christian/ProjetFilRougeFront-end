@@ -1,19 +1,33 @@
 // src/services/api.js
 import axios from 'axios';
 
-// Instance Axios centrale pour tout ton projet
 const api = axios.create({
-  baseURL: 'http://localhost:3000', // <-- ton backend Nest.js
+  baseURL: 'http://localhost:3000',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Tu peux ajouter ici des interceptors si besoin (auth, erreurs, etc.)
-// Exemple d'interceptor pour logger toutes les requêtes
-api.interceptors.request.use((config) => {
-  console.log('Envoi de la requête vers:', config.url);
-  return config;
-});
+// INTERCEPTOR : Ajoute automatiquement le token à chaque appel
+api.interceptors.request.use(
+  (config) => {
+    // On récupère le token stocké lors du login
+    // Vérifiez bien si vous l'avez nommé 'access_token' ou 'token' lors du stockage
+    const token = localStorage.getItem('access_token'); 
+
+    if (token) {
+      // On l'ajoute dans le header Authorization
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log(`[API] Token injecté pour: ${config.url}`);
+    } else {
+      console.warn(`[API] Aucun token trouvé pour: ${config.url}`);
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 export default api;
