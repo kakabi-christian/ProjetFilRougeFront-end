@@ -24,6 +24,17 @@ export default function Sidebar() {
             Statistiques
           </NavLink>
         </li>
+        <li className="mb-1">
+          <NavLink
+            to="/admin/rapport"
+            className={({ isActive }) =>
+              `d-flex align-items-center p-3 text-decoration-none ${isActive ? 'bg-primary text-white' : 'text-dark'}`
+            }
+          >
+            <BiBarChart size={24} className="me-2" />
+            Rapport 
+          </NavLink>
+        </li>
 
         {/* Onglet Graphiques */}
         <li className="mb-1">

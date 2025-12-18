@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import StatistiqueService from '../services/StatistiqueService';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import ReportContent from './ReportContent';
 
 // Fonction d'aide pour formater les nombres en devise
 const formatCurrency = (amount) => {
@@ -721,6 +722,8 @@ export default function StatistiqueContent() {
           </div>
         </div>
       </div>
+
+     
 
       {/* Footer */}
       <div className="text-center mt-5 pt-4 pb-3">

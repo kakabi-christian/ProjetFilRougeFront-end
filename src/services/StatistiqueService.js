@@ -104,6 +104,33 @@ const StatistiqueService = {
     const response = await api.get('/statistique/dashboard');
     return response.data;
   },
+
+  // ===================== NOUVELLES MÉTHODES (FRONTEND) =====================
+
+  candidatsParRegionDetaille: async () => {
+    const response = await api.get('/statistique/regions-detaillees');
+    return response.data;
+  },
+
+  candidatsParTrancheAge: async () => {
+    const response = await api.get('/statistique/tranches-age');
+    return response.data;
+  },
+
+  statsParCentreExamen: async () => {
+    const response = await api.get('/statistique/stats-centres-examen');
+    return response.data;
+  },
+
+  statsParCentreDepot: async () => {
+    const response = await api.get('/statistique/stats-centres-depot');
+    return response.data;
+  },
+
+  tauxConversionPaiement: async () => {
+    const response = await api.get('/statistique/taux-conversion');
+    return response.data;
+  },
 };
 
 export default StatistiqueService;

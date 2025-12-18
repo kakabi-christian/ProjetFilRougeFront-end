@@ -32,7 +32,6 @@ export default function LoginContent() {
 
       const data = await loginUser(payload);
       console.log('Login réussi :', data);
-      alert(`Bienvenue ${data.user.nom}`);
 
       // 🔹 Redirection selon le rôle
       if (data.user.userType === 'ADMIN') {

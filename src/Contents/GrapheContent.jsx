@@ -1,40 +1,45 @@
 import React, { useEffect, useState } from 'react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-    PieChart, Pie, Cell, LineChart, Line
+    PieChart, Pie, Cell, LineChart, Line, AreaChart, Area, ComposedChart
 } from 'recharts';
-import StatistiqueService from '../services/StatistiqueService'; // Assurez-vous que ce chemin est correct
+import StatistiqueService from '../services/StatistiqueService';
 
 // =========================================================================
-// CODES COULEURS UTILISÉS DANS L'APPLICATION (Mise à jour avec vos couleurs)
+// CODES COULEURS UTILISÉS DANS L'APPLICATION
 // =========================================================================
 const COLORS = {
-    // Couleurs fournies par l'utilisateur
-    GREEN: '#25963F', // Utilisé pour le Succès / Montant Total
-    BLUE: '#1E90FF', // Utilisé pour les Candidats / Primaire
-
-    // Couleurs existantes adaptées
-    PRIMARY: '#667eea', 
-    SECONDARY: '#ec4899', // Filières / Mentions
-    SUCCESS: '#10b981', 
-    WARNING: '#f59e0b', // Paiements En Attente
-    DANGER: '#ef4444', // Échecs / Féminin
-    INFO: '#06b6d4', // Mentions
-    NEUTRAL: '#764ba2', // Dégradé
+    GREEN: '#25963F',
+    BLUE: '#1E90FF',
+    PRIMARY: '#667eea',
+    SECONDARY: '#ec4899',
+    SUCCESS: '#10b981',
+    WARNING: '#f59e0b',
+    DANGER: '#ef4444',
+    INFO: '#06b6d4',
+    NEUTRAL: '#764ba2',
 };
 
-// Couleurs spécifiques pour les Pie Charts
-const PIE_COLORS_SEXE = [COLORS.BLUE, COLORS.DANGER]; // Masculin / Féminin
-const PIE_COLORS_PAIEMENT = [COLORS.GREEN, COLORS.WARNING, COLORS.DANGER]; // SUCCESS, PENDING, FAILED
+const PIE_COLORS_SEXE = [COLORS.BLUE, COLORS.DANGER];
+const REGION_COLORS = ['#667eea', '#ec4899', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#764ba2', '#8b5cf6'];
+const AGE_COLORS = ['#3b82f6', '#06b6d4', '#10b981', '#f59e0b'];
 
-// Fonction pour formater l'axe Y des montants
 const formatYAxis = (tick) => {
     if (tick >= 1000000) return (tick / 1000000).toFixed(1) + 'M';
     if (tick >= 1000) return (tick / 1000).toFixed(0) + 'K';
     return tick;
 };
 
-// Fonction pour obtenir la couleur du statut de paiement
+const formatCurrency = (amount) => {
+    if (amount === null || amount === undefined) return 'N/A';
+    return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'XOF',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(amount).replace('XOF', 'FCFA');
+};
+
 const getPaiementColor = (name) => {
     switch (name) {
         case 'SUCCESS':
@@ -62,7 +67,7 @@ export default function GrapheContent() {
                 const [
                     totalCandidats, sexeCandidats, candidatsParSpecialite, candidatsParFiliere,
                     candidatsParConcours, nombrePaiementsStatut, totalPaiements, candidatsParSession,
-                    candidatsParMention
+                    candidatsParMention, regions, tranchesAge, centresExamen
                 ] = await Promise.all([
                     StatistiqueService.totalCandidats(),
                     StatistiqueService.sexeCandidats(),
@@ -73,6 +78,9 @@ export default function GrapheContent() {
                     StatistiqueService.totalPaiements(),
                     StatistiqueService.candidatsParSession(),
                     StatistiqueService.candidatsParMention(),
+                    StatistiqueService.candidatsParRegionDetaille(),
+                    StatistiqueService.candidatsParTrancheAge(),
+                    StatistiqueService.statsParCentreExamen()
                 ]);
 
                 setStats({
@@ -85,6 +93,9 @@ export default function GrapheContent() {
                     totalPaiements,
                     candidatsParSession,
                     candidatsParMention,
+                    regions,
+                    tranchesAge,
+                    centresExamen
                 });
 
             } catch (err) {
@@ -132,16 +143,16 @@ export default function GrapheContent() {
 
     // 1. Données Sexe (pour Pie Chart)
     const sexeData = [
-        { name: 'Garçons', value: stats.sexeCandidats?.masculins || 0 }, // J'ai corrigé 'male' en 'masculins'
-        { name: 'Filles', value: stats.sexeCandidats?.feminins || 0 }, // J'ai corrigé 'female' en 'feminins'
-    ].filter(d => d.value > 0); 
+        { name: 'Garçons', value: stats.sexeCandidats?.masculins || 0 },
+        { name: 'Filles', value: stats.sexeCandidats?.feminins || 0 },
+    ].filter(d => d.value > 0);
 
-    // 2. Données Paiements Statut (pour Pie Chart)
+    // 2. Données Paiements Statut (pour Bar Chart)
     const paiementStatutData = stats.nombrePaiementsStatut?.map(s => ({
         name: s.statut,
-        value: s.nombre, // 'nombre' est le nom de la clé dans le service mis à jour
+        value: s.nombre,
     })) || [];
-    
+
     // 3. Données Spécialités (pour Bar Chart)
     const specialiteData = Object.entries(stats.candidatsParSpecialite || {}).map(([name, details]) => ({
         name,
@@ -161,13 +172,40 @@ export default function GrapheContent() {
         name: f.filiere,
         'Total Candidats': f.total,
     })) || [];
-    
+
     // 6. Données Mentions (pour Bar Chart)
     const mentionData = stats.candidatsParMention?.map(m => ({
-        name: m.mention, // J'ai corrigé 'Mention' en 'mention'
-        'Nombre': m.total, // J'ai corrigé '_count.id' en 'total'
+        name: m.mention,
+        'Nombre': m.total,
     })) || [];
 
+    // 7. Données Régions (pour Pie Chart)
+    const regionData = Object.entries(stats.regions || {}).map(([name, data]) => ({
+        name,
+        value: data.total,
+        filles: data.filles,
+        garcons: data.garcons
+    }));
+
+    // 8. Données Tranches d'âge (pour Area Chart)
+    const ageData = Object.entries(stats.tranchesAge || {}).map(([tranche, count]) => ({
+        tranche,
+        nombre: count
+    }));
+
+    // 9. Données Centres d'examen (pour Bar Chart)
+    const centresData = stats.centresExamen?.map(c => ({
+        name: c.centre,
+        'Filles': c.filles,
+        'Garçons': c.garcons,
+        'Total': c.total
+    })) || [];
+
+    // 10. Données Sessions évolution (pour Line Chart)
+    const sessionData = stats.candidatsParSession?.map(s => ({
+        session: s.session,
+        nombre: s.nombre
+    })) || [];
 
     // =========================================================================
     // RENDU DES GRAPHIQUES
@@ -187,7 +225,7 @@ export default function GrapheContent() {
             <div className="row g-5">
                 
                 {/* GRAPHIQUE 1: Répartition par Sexe (Pie Chart) */}
-                <div className="col-lg-6"> {/* 6/12 pour occuper la moitié de la ligne */}
+                <div className="col-lg-6">
                     <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
                         <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.BLUE} 0%, ${COLORS.NEUTRAL} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
                             <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
@@ -204,7 +242,7 @@ export default function GrapheContent() {
                                             nameKey="name"
                                             cx="50%"
                                             cy="50%"
-                                            innerRadius={60} // Ajout d'un rayon intérieur pour un Donut Chart
+                                            innerRadius={60}
                                             outerRadius={100}
                                             fill="#8884d8"
                                             labelLine={false}
@@ -224,48 +262,138 @@ export default function GrapheContent() {
                         </div>
                     </div>
                 </div>
-
-                {/* GRAPHIQUE 2: Paiements par Statut (Pie Chart / Cercle) */}
-                <div className="col-lg-6"> {/* 6/12 pour occuper la moitié de la ligne */}
+                  {/* GRAPHIQUE 3: Répartition Géographique (Pie Chart) */}
+                <div className="col-lg-6">
                     <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
-                        <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.GREEN} 0%, ${COLORS.WARNING} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
+                        <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.DANGER} 0%, ${COLORS.SECONDARY} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
                             <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
-                                <i className="bi bi-currency-dollar me-2"></i> Répartition des Paiements par Statut
+                                <i className="bi bi-geo-alt-fill me-2"></i> Répartition Géographique par Région
                             </h5>
                         </div>
                         <div className="card-body p-4 text-center">
-                            {paiementStatutData.length > 0 ? (
-                                <ResponsiveContainer width="100%" height={300}>
+                            {regionData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={350}>
                                     <PieChart>
                                         <Pie
-                                            data={paiementStatutData}
+                                            data={regionData}
                                             dataKey="value"
                                             nameKey="name"
                                             cx="50%"
                                             cy="50%"
-                                            innerRadius={60} // Donut Chart pour la consistance
-                                            outerRadius={100}
+                                            outerRadius={120}
                                             fill="#8884d8"
-                                            labelLine={false}
-                                            label={({ percent, name, value }) => `${name} : ${value} (${(percent * 100).toFixed(0)}%)`}
+                                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                                         >
-                                            {paiementStatutData.map((entry, index) => (
-                                                // Utilisation de la fonction pour déterminer la couleur par statut
-                                                <Cell key={`cell-${index}`} fill={getPaiementColor(entry.name)} />
+                                            {regionData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={REGION_COLORS[index % REGION_COLORS.length]} />
                                             ))}
                                         </Pie>
-                                        <Tooltip />
+                                        <Tooltip formatter={(value, name, props) => [
+                                            `${value} candidats (F: ${props.payload.filles}, G: ${props.payload.garcons})`,
+                                            name
+                                        ]} />
                                         <Legend verticalAlign="bottom" height={36} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="alert alert-info">Aucune donnée de paiement à afficher.</div>
+                                <div className="alert alert-info">Aucune donnée géographique à afficher.</div>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* GRAPHIQUE 3: Candidats par Spécialité et Sexe (Bar Chart Stacked) */}
+              
+
+                {/* GRAPHIQUE 4: Tranches d'âge (Area Chart) */}
+                <div className="col-lg-6">
+                    <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
+                        <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.INFO} 0%, ${COLORS.PRIMARY} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
+                            <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
+                                <i className="bi bi-person-bounding-box me-2"></i> Distribution par Tranche d'Âge
+                            </h5>
+                        </div>
+                        <div className="card-body p-4">
+                            {ageData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={350}>
+                                    <AreaChart data={ageData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="colorAge" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor={COLORS.INFO} stopOpacity={0.8}/>
+                                                <stop offset="95%" stopColor={COLORS.INFO} stopOpacity={0.1}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e0f2fe" />
+                                        <XAxis dataKey="tranche" stroke={COLORS.INFO} />
+                                        <YAxis stroke={COLORS.INFO} />
+                                        <Tooltip 
+                                            contentStyle={{
+                                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                            }}
+                                        />
+                                        <Area 
+                                            type="monotone" 
+                                            dataKey="nombre" 
+                                            stroke={COLORS.INFO} 
+                                            strokeWidth={3}
+                                            fillOpacity={1} 
+                                            fill="url(#colorAge)" 
+                                            name="Candidats"
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="alert alert-info">Aucune donnée d'âge à afficher.</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                  {/* GRAPHIQUE 10: Performance Financière par Concours (ComposedChart) */}
+                <div className="col-lg-6">
+                    <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
+                        <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.BLUE} 0%, ${COLORS.GREEN} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
+                            <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
+                                <i className="bi bi-bar-chart-line-fill me-2"></i> Performance Financière par Concours
+                            </h5>
+                        </div>
+                        <div className="card-body p-4">
+                            {concoursData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <ComposedChart data={concoursData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#c3dafe" />
+                                        <XAxis dataKey="name" stroke={COLORS.BLUE} />
+                                        <YAxis yAxisId="left" orientation="left" stroke={COLORS.BLUE} />
+                                        <YAxis yAxisId="right" orientation="right" stroke={COLORS.GREEN} tickFormatter={formatYAxis} />
+                                        <Tooltip formatter={(value, name) => [
+                                            name.includes('Montant') ? formatCurrency(value) : value, 
+                                            name
+                                        ]} />
+                                        <Legend />
+                                        <Bar yAxisId="left" dataKey="Candidats" fill={COLORS.BLUE} name="Nombre de Candidats" opacity={0.7} radius={[8, 8, 0, 0]} />
+                                        <Line 
+                                            yAxisId="right" 
+                                            type="monotone" 
+                                            dataKey="Montant Total (XOF)" 
+                                            stroke={COLORS.GREEN} 
+                                            strokeWidth={3} 
+                                            dot={{ stroke: COLORS.GREEN, strokeWidth: 2, r: 5 }} 
+                                            activeDot={{ r: 8 }}
+                                            name="Montant Total"
+                                        />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="alert alert-info">Aucune donnée de concours à afficher.</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+
+                {/* GRAPHIQUE 5: Candidats par Spécialité et Sexe (Bar Chart Stacked) */}
                 <div className="col-lg-12">
                     <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
                         <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.SECONDARY} 0%, ${COLORS.DANGER} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
@@ -292,8 +420,78 @@ export default function GrapheContent() {
                         </div>
                     </div>
                 </div>
-                
-                {/* GRAPHIQUE 4: Candidats par Filière (Bar Chart Horizontal) */}
+
+                {/* GRAPHIQUE 6: Centres d'Examen (Bar Chart Groupé) */}
+                <div className="col-lg-12">
+                    <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
+                        <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.SUCCESS} 0%, ${COLORS.INFO} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
+                            <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
+                                <i className="bi bi-building-fill me-2"></i> Répartition par Centre d'Examen
+                            </h5>
+                        </div>
+                        <div className="card-body p-4">
+                            {centresData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={400}>
+                                    <BarChart data={centresData} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e0f2fe" />
+                                        <XAxis 
+                                            dataKey="name" 
+                                            stroke={COLORS.SUCCESS} 
+                                            angle={-45} 
+                                            textAnchor="end" 
+                                            height={100}
+                                            interval={0}
+                                        />
+                                        <YAxis stroke={COLORS.SUCCESS} />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Bar dataKey="Filles" fill={COLORS.DANGER} radius={[8, 8, 0, 0]} />
+                                        <Bar dataKey="Garçons" fill={COLORS.BLUE} radius={[8, 8, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="alert alert-info">Aucune donnée de centre d'examen à afficher.</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* GRAPHIQUE 7: Évolution par Session (Line Chart) */}
+                <div className="col-lg-6">
+                    <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
+                        <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.PRIMARY} 0%, ${COLORS.SECONDARY} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
+                            <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
+                                <i className="bi bi-graph-up me-2"></i> Évolution des Candidatures par Session
+                            </h5>
+                        </div>
+                        <div className="card-body p-4">
+                            {sessionData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <LineChart data={sessionData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
+                                        <XAxis dataKey="session" stroke={COLORS.PRIMARY} />
+                                        <YAxis stroke={COLORS.PRIMARY} />
+                                        <Tooltip />
+                                        <Legend />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="nombre" 
+                                            stroke={COLORS.PRIMARY} 
+                                            strokeWidth={3}
+                                            dot={{ fill: COLORS.PRIMARY, r: 6 }}
+                                            activeDot={{ r: 8 }}
+                                            name="Nombre de Candidats"
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="alert alert-info">Aucune donnée de session à afficher.</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* GRAPHIQUE 8: Candidats par Filière (Bar Chart Horizontal) */}
                 <div className="col-lg-6">
                     <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
                         <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.INFO} 0%, ${COLORS.SECONDARY} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
@@ -310,7 +508,7 @@ export default function GrapheContent() {
                                         <YAxis dataKey="name" type="category" stroke={COLORS.INFO} width={100} />
                                         <Tooltip />
                                         <Legend />
-                                        <Bar dataKey="Total Candidats" fill={COLORS.INFO} radius={[10, 10, 0, 0]} />
+                                        <Bar dataKey="Total Candidats" fill={COLORS.INFO} radius={[0, 10, 10, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -320,7 +518,7 @@ export default function GrapheContent() {
                     </div>
                 </div>
 
-                {/* GRAPHIQUE 5: Candidats par Mention (Bar Chart Simple) */}
+                {/* GRAPHIQUE 9: Candidats par Mention (Bar Chart Simple) */}
                 <div className="col-lg-6">
                     <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
                         <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.PRIMARY} 0%, ${COLORS.INFO} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
@@ -336,7 +534,7 @@ export default function GrapheContent() {
                                         <XAxis dataKey="name" stroke={COLORS.PRIMARY} />
                                         <YAxis stroke={COLORS.PRIMARY} />
                                         <Tooltip cursor={{ fill: 'rgba(102, 126, 234, 0.1)' }} />
-                                        <Bar dataKey="Nombre" fill={COLORS.PRIMARY} />
+                                        <Bar dataKey="Nombre" fill={COLORS.PRIMARY} radius={[8, 8, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
@@ -346,38 +544,8 @@ export default function GrapheContent() {
                     </div>
                 </div>
 
-                {/* GRAPHIQUE 6: Montants Totaux des Concours vs Nombre de Candidats (Combined Chart) */}
-                <div className="col-lg-12">
-                    <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
-                        <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.BLUE} 0%, ${COLORS.GREEN} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
-                            <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
-                                <i className="bi bi-bar-chart-line-fill me-2"></i> Performance Financière par Concours
-                            </h5>
-                        </div>
-                        <div className="card-body p-4">
-                            {concoursData.length > 0 ? (
-                                <ResponsiveContainer width="100%" height={350}>
-                                    <BarChart data={concoursData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#c3dafe" />
-                                        <XAxis dataKey="name" stroke={COLORS.BLUE} interval={0} angle={-15} textAnchor="end" height={60} />
-                                        <YAxis yAxisId="left" orientation="left" stroke={COLORS.BLUE} label={{ value: 'Candidats', angle: -90, position: 'insideLeft' }} />
-                                        <YAxis yAxisId="right" orientation="right" stroke={COLORS.GREEN} tickFormatter={formatYAxis} label={{ value: 'Montant (FCFA)', angle: 90, position: 'insideRight' }} />
-                                        <Tooltip formatter={(value, name) => [name.includes('Montant') ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', minimumFractionDigits: 0 }).format(value).replace('XOF', 'FCFA') : value, name]} />
-                                        <Legend />
-                                        
-                                        <Bar yAxisId="left" dataKey="Candidats" fill={COLORS.BLUE} name="Nombre de Candidats" opacity={0.7} />
-                                        <Line yAxisId="right" dataKey="Montant Total (XOF)" stroke={COLORS.GREEN} type="monotone" strokeWidth={3} dot={{ stroke: COLORS.GREEN, strokeWidth: 2 }} activeDot={{ r: 8 }} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            ) : (
-                                <div className="alert alert-info">Aucune donnée de concours à afficher.</div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+              
             </div>
-
-            
         </div>
     );
 }

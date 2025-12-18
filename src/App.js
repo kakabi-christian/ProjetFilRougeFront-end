@@ -14,6 +14,7 @@ import Step4Register from './Components/Step4Register';
 import CandidateInfo from './Components/CandidateInfo';
 import AdminDashboard from './Pages/AdminDashboard';
 import StatistiqueContent from './Contents/StatistiqueContent';
+import ReportContent from './Contents/ReportContent';
 import GrapheContent from './Contents/GrapheContent';
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
         <Route path='/admin/*' element={<AdminDashboard />}>
           {/* Routes enfants du dashboard */}
           <Route path='statistiques' element={<StatistiqueContent />} />
+          <Route path='rapport' element={<ReportContent />} />
           <Route path='graphiques' element={<GrapheContent />} />
           {/* Tu pourras ajouter d'autres routes enfants ici */}
         </Route>

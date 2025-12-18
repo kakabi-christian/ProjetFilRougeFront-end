@@ -220,12 +220,22 @@ export default function Step2Register() {
 
             <h5 className="mb-3 text-secondary">Informations Personnelles</h5>
             <div className='row'>
-              {/* Date Naissance */}
-              <div className="col-md-6 mb-3">
-                <label className="form-label fw-medium"><i className="bi bi-calendar-date-fill me-2"></i> Date de naissance</label>
-                <input type="date" className="form-control" value={dateNaissance} onChange={e => setDateNaissance(e.target.value)} required />
-              </div>
+             {/* Date Naissance */}
+                <div className="col-md-6 mb-3">
+                  <label className="form-label fw-medium">
+                    <i className="bi bi-calendar-date-fill me-2"></i> Date de naissance
+                  </label>
 
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={dateNaissance}
+                    onChange={e => setDateNaissance(e.target.value)}
+                    min="2005-01-01"
+                    max="2010-12-31"
+                    required
+                  />
+                </div>
               {/* Lieu Naissance */}
               <div className="col-md-6 mb-3">
                 <label className="form-label fw-medium"><i className="bi bi-pin-map-fill me-2"></i> Lieu de naissance</label>
