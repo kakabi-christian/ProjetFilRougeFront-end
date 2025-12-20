@@ -24,8 +24,12 @@ import ExamenCentreComponent from './Components/ExamenCentreComponent';
 import CentreDepotContent from './Components/CentreDepotContent';
 import SpecialiteComponent from './Components/SpecialiteComponent';
 import ConcourComponent from './Components/ConcourComponent';
+import EpreuveContent from './Contents/EpreuveContent';
 import AnneContent from './Contents/AnneContent';
 import SessionsContent from './Contents/SessionsContent';
+import ArchiveContent from './Contents/ArchiveContent';
+import NiveauContent from './Contents/NiveauContent';
+import ContentArchive from './Contents/ContentArchive';
 function App() {
   return (
     <Router>
@@ -60,6 +64,11 @@ function App() {
           <Route path='concours' element={<ConcourComponent />} />
           <Route path='annees' element={<AnneContent />} />
           <Route path='sessions' element={<SessionsContent />} />
+          <Route path='epreuves' element={<EpreuveContent />} />
+          <Route path='epreuves' element={<EpreuveContent />} />
+          <Route path='niveaux' element={<NiveauContent />} />
+          <Route path='archives' element={<ArchiveContent />} />
+          <Route path='archive' element={<ContentArchive />} />
           {/* Tu pourras ajouter d'autres routes enfants ici */}
         </Route>
       </Routes>

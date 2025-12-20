@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from "react-router-dom";
 import '../Styles/Header.css';
-import logo from '../Assets/logo app.png';
+import logo from '../Assets/logo app.jpg';
 
 const colorGreen = '#25963F';
 const colorBlue = '#1E90FF';
@@ -18,17 +18,17 @@ export default function Header() {
     <div className="Container">
 
       {/* Header bleu */}
-      <div className="Blue"></div>
+      <div className="Blue" style={{ height: '25px', backgroundColor: colorBlue }}></div>
 
       {/* NAVBAR BOOTSTRAP */}
-      <nav className="navbar navbar-expand-lg bg-white shadow-sm">
+      <nav className="navbar navbar-expand-lg bg-white shadow-sm py-2">
 
         <div className="container">
 
           {/* Logo */}
-          <div className="d-flex align-items-center gap-3">
-            <img src={logo} alt="logo-app" className="logo-img" />
-            <p className="fw-bold" style={{ color: colorGreen, fontSize: '18px', paddingTop: '13px' }}>ESTLC</p>
+          <div className="d-flex align-items-center gap-2">
+            <img src={logo} alt="logo-app" className="logo-img" style={{ height: '70px',width: '70px' }} />
+            <p className="fw-bold mb-0" style={{ color: colorGreen, fontSize: '18px' }}>ESTLC</p>
           </div>
 
           {/* Button Burger Mobile */}
@@ -48,9 +48,11 @@ export default function Header() {
               {/* ACCUEIL */}
               <li className="nav-item">
                 <Link
-                  className={`nav-link fw-bold ${isActive("/") ? "active-link" : ""}`}
+                  className={`nav-link fw-bold d-flex align-items-center gap-2 ${isActive("/") ? "active-link" : ""}`}
+                  style={{ color: isActive("/") ? colorGreen : '#555' }}
                   to="/"
                 >
+                  <i className="fas fa-home"></i>
                   Accueil
                 </Link>
               </li>
@@ -58,9 +60,11 @@ export default function Header() {
               {/* SITES */}
               <li className="nav-item">
                 <Link
-                  className={`nav-link fw-bold ${isActive("/Site") ? "active-link" : ""}`}
+                  className={`nav-link fw-bold d-flex align-items-center gap-2 ${isActive("/Site") ? "active-link" : ""}`}
+                  style={{ color: isActive("/Site") ? colorGreen : '#555' }}
                   to="/Site"
                 >
+                  <i className="fas fa-map-marker-alt"></i>
                   Nos sites
                 </Link>
               </li>
@@ -68,9 +72,11 @@ export default function Header() {
               {/* ARCHIVES */}
               <li className="nav-item">
                 <Link
-                  className={`nav-link fw-bold ${isActive("/Archives") ? "active-link" : ""}`}
+                  className={`nav-link fw-bold d-flex align-items-center gap-2 ${isActive("/Archives") ? "active-link" : ""}`}
+                  style={{ color: isActive("/Archives") ? colorGreen : '#555' }}
                   to="/Archives"
                 >
+                  <i className="fas fa-file-archive"></i>
                   Nos archives
                 </Link>
               </li>
@@ -78,16 +84,18 @@ export default function Header() {
               {/* PAIEMENT */}
               <li className="nav-item">
                 <Link
-                  className={`nav-link fw-bold ${isActive("/Paiement") ? "active-link" : ""}`}
+                  className={`nav-link fw-bold d-flex align-items-center gap-2 ${isActive("/Paiement") ? "active-link" : ""}`}
+                  style={{ color: isActive("/Paiement") ? colorGreen : '#555' }}
                   to="/Paiement"
                 >
+                  <i className="fas fa-credit-card"></i>
                   Paiement
                 </Link>
               </li>
             </ul>
 
-            {/* Login + Register avec background bleu + icônes */}
-            <div className="d-flex gap-3">
+            {/* Login + Register */}
+            <div className="d-flex gap-3 mt-lg-0 mt-3">
 
               <Link
                 className="btn fw-bold d-flex align-items-center gap-2"

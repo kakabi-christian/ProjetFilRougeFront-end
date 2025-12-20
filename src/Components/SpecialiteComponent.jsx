@@ -2,21 +2,21 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   BiSearch, BiChevronLeft, BiPlus, BiEditAlt, 
   BiTrash, BiLoaderAlt, BiCheck, BiErrorCircle,
-  BiExtension, BiLayer, BiPowerOff
+  BiExtension, BiLayer
 } from 'react-icons/bi';
 import specialiteService from '../services/specialiteService';
-import filiereService from '../services/filiereService'; // Pour charger les options du select
+import filiereService from '../services/filiereService';
 
 const SpecialiteComponent = () => {
   // --- ÉTATS ---
   const [specialites, setSpecialites] = useState([]);
-  const [filieres, setFilieres] = useState([]); // Liste pour le menu déroulant
+  const [filieres, setFilieres] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = user.userType === 'ADMIN';
 
-  // États Modals et Formulaire
+  // États Modals
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
@@ -39,7 +39,7 @@ const SpecialiteComponent = () => {
   // --- CHARGEMENT DES DONNÉES ---
   const loadInitialData = async () => {
     try {
-      const resFilieres = await filiereService.getAll({ limit: 100 }); // On charge les filières pour le select
+      const resFilieres = await filiereService.getAll({ limit: 100 });
       setFilieres(resFilieres.data || []);
     } catch (err) {
       console.error("Erreur chargement filières", err);
@@ -137,7 +137,7 @@ const SpecialiteComponent = () => {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="fw-bold text-dark mb-1">Spécialités</h2>
-          <p className="text-muted small">Total: {pagination.total} spécialités</p>
+          <p className="text-muted small">Catalogue des expertises ({pagination.total})</p>
         </div>
         {isAdmin && (
           <button className="btn btn-primary d-flex align-items-center shadow-sm px-4" onClick={() => openModal()}>
@@ -180,17 +180,21 @@ const SpecialiteComponent = () => {
               ) : (
                 specialites.map((s) => (
                   <tr key={s.id}>
-                    <td className="px-4"><span className="badge bg-light text-dark border font-monospace">{s.code}</span></td>
+                    <td className="px-4">
+                      <span className="badge bg-white text-dark border px-2 py-1 font-monospace">{s.code}</span>
+                    </td>
                     <td>
                       <div className="d-flex align-items-center">
-                        <div className="bg-light p-2 rounded me-3 text-primary"><BiExtension/></div>
+                        <div className="bg-light p-2 rounded me-3 text-primary"><BiExtension size={18}/></div>
                         <span className="fw-bold text-dark">{s.libelle}</span>
                       </div>
                     </td>
                     <td>
-                      <span className="badge bg-info bg-opacity-10 text-info">
-                        <BiLayer className="me-1"/> {s.filiere?.intitule || 'N/A'}
-                      </span>
+                      {/* BACKGROUND SUPPRIMÉ ICI */}
+                      <div className="text-dark d-flex align-items-center small">
+                        <BiLayer className="me-2 text-muted"/>
+                        {s.filiere?.intitule || 'N/A'}
+                      </div>
                     </td>
                     <td className="text-center">
                       <div className={`form-check form-switch d-flex justify-content-center ${!isAdmin && 'pe-none'}`}>
@@ -241,15 +245,15 @@ const SpecialiteComponent = () => {
                   <div className="row g-3">
                     <div className="col-md-4">
                       <label className="form-label fw-bold small">CODE</label>
-                      <input type="text" className="form-control" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })} placeholder="ex: GL" />
+                      <input type="text" className="form-control bg-light border-0 shadow-none" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })} placeholder="ex: GL" />
                     </div>
                     <div className="col-md-8">
                       <label className="form-label fw-bold small">LIBELLÉ</label>
-                      <input type="text" className="form-control" required value={formData.libelle} onChange={(e) => setFormData({ ...formData, libelle: e.target.value })} placeholder="ex: Génie Logiciel" />
+                      <input type="text" className="form-control bg-light border-0 shadow-none" required value={formData.libelle} onChange={(e) => setFormData({ ...formData, libelle: e.target.value })} placeholder="ex: Génie Logiciel" />
                     </div>
                     <div className="col-12">
                       <label className="form-label fw-bold small">FILIÈRE PARENTE</label>
-                      <select className="form-select" required value={formData.filiereId} onChange={(e) => setFormData({ ...formData, filiereId: e.target.value })}>
+                      <select className="form-select bg-light border-0 shadow-none" required value={formData.filiereId} onChange={(e) => setFormData({ ...formData, filiereId: e.target.value })}>
                         <option value="">Sélectionner une filière...</option>
                         {filieres.map(f => <option key={f.id} value={f.id}>{f.intitule}</option>)}
                       </select>
@@ -274,8 +278,36 @@ const SpecialiteComponent = () => {
         </div>
       )}
 
-      {/* MODALS NOTIF & CONFIRM (Même structure que Centres) */}
-      {/* ... */}
+      {/* 🔹 MODAL NOTIFICATION */}
+      {notification.show && (
+        <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1060 }}>
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg text-center p-4">
+                {notification.type === 'error' ? <BiErrorCircle className="text-danger mb-3" size={50} /> : <BiCheck className="text-success mb-3" size={50} />}
+                <h5 className="fw-bold">{notification.title}</h5>
+                <p className="text-muted small">{notification.message}</p>
+                <button className="btn btn-dark w-100 mt-3" onClick={() => setNotification({ ...notification, show: false })}>Ok</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🔹 MODAL CONFIRMATION SUPPRESSION */}
+      {confirmDelete.show && (
+        <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1060 }}>
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg p-4 text-center">
+                <BiTrash className="text-danger mb-3" size={50} />
+                <h5 className="fw-bold">Confirmer ?</h5>
+                <p className="text-muted small">Voulez-vous supprimer cette spécialité ?</p>
+                <div className="d-flex gap-2 mt-4">
+                  <button className="btn btn-light border flex-grow-1" onClick={() => setConfirmDelete({ show: false, id: null })}>Non</button>
+                  <button className="btn btn-danger flex-grow-1" onClick={executeDelete}>Oui, Supprimer</button>
+                </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

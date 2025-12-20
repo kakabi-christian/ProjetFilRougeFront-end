@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  BiSearch, BiChevronLeft, 
-  BiPlus, BiEditAlt, BiTrash, BiLoaderAlt, 
-  BiCheck, BiErrorCircle
+  BiSearch, BiChevronLeft, BiPlus, BiEditAlt, 
+  BiTrash, BiLoaderAlt, BiCheck, BiErrorCircle,
+  BiBuildings, BiTimeFive
 } from 'react-icons/bi';
 import departementService from '../services/departementService';
 
@@ -11,21 +11,18 @@ const DepartementComponent = () => {
   const [departements, setDepartements] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // 🔹 Récupération du rôle pour le rendu conditionnel (disparition des boutons)
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = user.userType === 'ADMIN';
 
-  // États pour les Modals (Formulaire)
+  // États Formulaire
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
   const [formData, setFormData] = useState({ nomDep: '' });
   const [submitting, setSubmitting] = useState(false);
 
-  // 🔹 État pour les Notifications (Remplace les alertes natives et les bandeaux)
+  // Notifications et Suppression
   const [notification, setNotification] = useState({ show: false, title: '', message: '', type: 'error' });
-  
-  // 🔹 État pour la confirmation de suppression
   const [confirmDelete, setConfirmDelete] = useState({ show: false, id: null });
 
   // Pagination et filtres
@@ -40,7 +37,6 @@ const DepartementComponent = () => {
       setDepartements(result.data || []);
       setPagination(result.pagination);
     } catch (err) {
-      // Si une erreur de permission survient au chargement (403)
       if (err.response?.status === 403) {
         showNotify("Accès Restreint", "Vous n'avez pas la permission de voir ces données.", "error");
       }
@@ -61,7 +57,7 @@ const DepartementComponent = () => {
 
   const openModal = (dep = null) => {
     if (!isAdmin) {
-        showNotify("Permission refusée", "Vous n'avez pas les droits pour effectuer cette action.", "error");
+        showNotify("Permission refusée", "Vous n'avez pas les droits.", "error");
         return;
     }
     if (dep) {
@@ -86,10 +82,10 @@ const DepartementComponent = () => {
       }
       setShowModal(false);
       loadDepartements();
-      showNotify("Succès", "Opération réussie !", "success");
+      showNotify("Succès", "Département enregistré avec succès.", "success");
     } catch (err) {
       const msg = err.response?.status === 403 
-        ? "Action interdite : Vous n'avez pas la permission de modifier ces données." 
+        ? "Action interdite : Permission insuffisante." 
         : "Erreur lors de l'enregistrement.";
       showNotify("Erreur", msg, "error");
     } finally {
@@ -105,25 +101,21 @@ const DepartementComponent = () => {
       showNotify("Supprimé", "Le département a été retiré.", "success");
     } catch (err) {
       setConfirmDelete({ show: false, id: null });
-      const msg = err.response?.status === 403 
-        ? "Permission refusée pour la suppression." 
-        : "La suppression a échoué.";
-      showNotify("Erreur", msg, "error");
+      showNotify("Erreur", "La suppression a échoué.", "error");
     }
   };
 
   return (
-    <div className="container-fluid p-4 bg-light min-vh-100 position-relative">
+    <div className="container-fluid p-4 bg-light min-vh-100">
       {/* HEADER */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="fw-bold text-dark mb-1">Départements</h2>
-          <p className="text-muted small">{pagination.total} enregistrements</p>
+          <h2 className="fw-bold text-dark mb-1">Structure Académique</h2>
+          <p className="text-muted small">Gestion des départements ({pagination.total})</p>
         </div>
-        {/* Le bouton Nouveau disparaît si pas Admin */}
         {isAdmin && (
           <button className="btn btn-primary d-flex align-items-center shadow-sm px-4" onClick={() => openModal()}>
-            <BiPlus className="me-2" /> Nouveau
+            <BiPlus className="me-2" /> Nouveau Département
           </button>
         )}
       </div>
@@ -134,7 +126,7 @@ const DepartementComponent = () => {
           <span className="input-group-text bg-white border-end-0"><BiSearch /></span>
           <input 
             type="text" className="form-control border-start-0 shadow-none" 
-            placeholder="Rechercher..." 
+            placeholder="Rechercher un département..." 
             value={filters.search}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
           />
@@ -147,23 +139,36 @@ const DepartementComponent = () => {
           <table className="table table-hover align-middle mb-0">
             <thead className="bg-primary text-white">
               <tr>
-                <th className="px-4 py-3">NOM</th>
-                <th className="py-3">CRÉÉ LE</th>
+                <th className="px-4 py-3">NOM DU DÉPARTEMENT</th>
+                <th className="py-3">DATE DE CRÉATION</th>
                 {isAdmin && <th className="text-end px-4">ACTIONS</th>}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={isAdmin ? "3" : "2"} className="text-center py-5"><BiLoaderAlt className="spinner-border text-primary" /></td></tr>
+              ) : departements.length === 0 ? (
+                <tr><td colSpan={isAdmin ? "3" : "2"} className="text-center py-5 text-muted">Aucun département trouvé</td></tr>
               ) : (
                 departements.map((dep) => (
                   <tr key={dep.id}>
-                    <td className="px-4 fw-bold text-dark">{dep.nomDep}</td>
-                    <td>{new Date(dep.createdAt).toLocaleDateString()}</td>
-                    {/* Les actions disparaissent si pas Admin */}
+                    <td className="px-4">
+                      <div className="d-flex align-items-center">
+                        <div className="bg-white p-2 rounded me-3 text-primary">
+                          <BiBuildings size={20} />
+                        </div>
+                        <span className="fw-bold text-dark">{dep.nomDep}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="text-muted small">
+                        <BiTimeFive className="me-1" />
+                        {new Date(dep.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </div>
+                    </td>
                     {isAdmin && (
                       <td className="text-end px-4">
-                        <button className="btn btn-sm btn-light border me-2" onClick={() => openModal(dep)}>
+                        <button className="btn btn-sm btn-black border me-2" onClick={() => openModal(dep)}>
                           <BiEditAlt className="text-warning" />
                         </button>
                         <button className="btn btn-sm btn-light border" onClick={() => setConfirmDelete({ show: true, id: dep.id })}>
@@ -179,7 +184,7 @@ const DepartementComponent = () => {
         </div>
         
         {/* PAGINATION */}
-        <div className="card-footer bg-white d-flex justify-content-between align-items-center border-top-0">
+        <div className="card-footer bg-white d-flex justify-content-between align-items-center">
           <small className="text-muted">Page {pagination.page} / {pagination.lastPage}</small>
           <div className="btn-group">
             <button className="btn btn-sm btn-outline-secondary" disabled={!pagination.hasPreviousPage} onClick={() => setFilters(f => ({...f, page: f.page - 1}))}><BiChevronLeft/></button>
@@ -188,8 +193,8 @@ const DepartementComponent = () => {
         </div>
       </div>
 
-      {/* 🔹 MODAL FORMULAIRE */}
-      {showModal && isAdmin && (
+      {/* MODAL FORMULAIRE */}
+      {showModal && (
         <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 shadow-lg">
@@ -200,7 +205,7 @@ const DepartementComponent = () => {
                 </div>
                 <div className="modal-body p-4">
                   <label className="form-label fw-bold small">NOM DU DÉPARTEMENT</label>
-                  <input type="text" className="form-control form-control-lg bg-light border-0 shadow-none" required value={formData.nomDep} onChange={(e) => setFormData({ nomDep: e.target.value })} placeholder="Ex: Ressources Humaines" />
+                  <input type="text" className="form-control form-control-lg bg-light border-0 shadow-none" required value={formData.nomDep} onChange={(e) => setFormData({ nomDep: e.target.value })} placeholder="Ex: Informatique" />
                 </div>
                 <div className="modal-footer border-0">
                   <button type="button" className="btn btn-light" onClick={() => setShowModal(false)}>Annuler</button>
@@ -214,36 +219,32 @@ const DepartementComponent = () => {
         </div>
       )}
 
-      {/* 🔹 MODAL DE NOTIFICATION (Remplace alert et alert-permission) */}
+      {/* MODAL NOTIFICATION */}
       {notification.show && (
         <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1060 }}>
           <div className="modal-dialog modal-sm modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg text-center">
-              <div className="modal-body p-4">
+            <div className="modal-content border-0 shadow-lg text-center p-4">
                 {notification.type === 'error' ? <BiErrorCircle className="text-danger mb-3" size={50} /> : <BiCheck className="text-success mb-3" size={50} />}
                 <h5 className="fw-bold">{notification.title}</h5>
-                <p className="text-muted small mb-0">{notification.message}</p>
-                <button className="btn btn-dark w-100 mt-4" onClick={() => setNotification({ ...notification, show: false })}>Ok</button>
-              </div>
+                <p className="text-muted small">{notification.message}</p>
+                <button className="btn btn-dark w-100 mt-3" onClick={() => setNotification({ ...notification, show: false })}>Ok</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 🔹 MODAL DE CONFIRMATION SUPPRESSION */}
+      {/* MODAL CONFIRMATION SUPPRESSION */}
       {confirmDelete.show && (
         <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1060 }}>
           <div className="modal-dialog modal-sm modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-body p-4 text-center">
+            <div className="modal-content border-0 shadow-lg p-4 text-center">
                 <BiTrash className="text-danger mb-3" size={50} />
                 <h5 className="fw-bold">Confirmer ?</h5>
-                <p className="text-muted small">Cette action est irréversible.</p>
+                <p className="text-muted small">Voulez-vous supprimer ce département ?</p>
                 <div className="d-flex gap-2 mt-4">
                   <button className="btn btn-light border flex-grow-1" onClick={() => setConfirmDelete({ show: false, id: null })}>Non</button>
                   <button className="btn btn-danger flex-grow-1" onClick={executeDelete}>Oui, Supprimer</button>
                 </div>
-              </div>
             </div>
           </div>
         </div>

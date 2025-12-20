@@ -9,82 +9,89 @@ export default function Step3Register() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // --- États ---
   const [candidateId, setCandidateId] = useState(location.state?.candidateId || '');
   const [numeroCni, setNumeroCni] = useState('');
   const [typeExamen, setTypeExamen] = useState('');
   const [serie, setSerie] = useState('');
   const [mention, setMention] = useState('');
-  // Utilisation de 'loading' pour l'animation
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 🔹 Récupération sécurisée du candidateId depuis localStorage
+  // 🔹 Récupération sécurisée du candidateId (Persistance au rafraîchissement)
   useEffect(() => {
     if (!candidateId) {
       const storedId = localStorage.getItem('candidateId');
-      if (storedId) setCandidateId(storedId);
+      if (storedId) {
+        setCandidateId(storedId);
+      }
     }
   }, [candidateId]);
 
+  // 🔴 Sécurité : Redirection si l'ID est manquant
   if (!candidateId && !loading) {
     return (
-      <div className="alert alert-danger text-center mt-5">
-        Accès refusé. Veuillez reprendre l’inscription depuis l’étape 1.
+      <div className="container mt-5 text-center">
+        <div className="alert alert-warning shadow-sm">
+          <h4><i className="bi bi-exclamation-triangle me-2"></i> Session interrompue</h4>
+          <p>Impossible de lier ces informations à un candidat. Veuillez recommencer l'inscription.</p>
+          <button className="btn btn-warning mt-2" onClick={() => navigate('/Register')}>
+            Retour à l'accueil
+          </button>
+        </div>
       </div>
     );
   }
 
+  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Démarre l'animation
+    setLoading(true);
     setError(null);
 
+    // Validation
     if (!typeExamen || !mention) {
-      setError('Veuillez remplir tous les champs obligatoires.');
+      setError('Le type d’examen et la mention sont obligatoires.');
       setLoading(false);
       return;
     }
 
-    // 🔹 Préparer le payload
     const step3Data = {
       candidateId,
-      numeroCni: numeroCni || undefined,
+      numeroCni: numeroCni.trim() || undefined,
       typeExamen,
-      serie: serie || undefined,
-      Mention: mention,
+      serie: serie.toUpperCase().trim() || undefined,
+      Mention: mention, // Respecte la casse attendue par ton DTO NestJS
     };
 
     try {
-      // Simulation d'un délai de 2 secondes
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Simulation esthétique du délai de traitement
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       await registerCandidateStep3(step3Data);
 
-      // 🔹 Stocker candidateId pour l'étape suivante
-      localStorage.setItem('candidateId', candidateId);
-
-      // 🔹 Navigation vers Step4
+      // ✅ Navigation vers Step4 (souvent l'étape d'upload final ou de récapitulatif)
       navigate('/Step4Register', { state: { candidateId } });
 
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Erreur lors de l’enregistrement des documents.');
+      console.error("Erreur Step 3:", err);
+      setError(err.response?.data?.message || err.message || 'Erreur lors de l’enregistrement des informations académiques.');
     } finally {
-      // Le loading est coupé après la redirection, ou après l'erreur
       setLoading(false);
     }
   };
   
-  // --- Rendu de l'état de traitement (Animation) ---
+  // --- Écran de chargement ---
   if (loading) {
     return (
-      <div className="container mt-5 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
-        <div className="card shadow-lg p-5">
-          <h2 className='mb-4 text-primary'>Enregistrement de l'Étape 3 en cours...</h2>
-          {/* Animation de chargement Bootstrap */}
+      <div className="container mt-5 text-center d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '80vh' }}>
+        <div className="card shadow-lg p-5 border-0">
+          <h2 className='mb-4 text-primary fw-bold'>Finalisation du profil...</h2>
           <div className="spinner-border text-primary" style={{ width: '4rem', height: '4rem' }} role="status">
-            <span className="visually-hidden">Enregistrement...</span>
+            <span className="visually-hidden">Traitement...</span>
           </div>
-          <p className="mt-4 lead text-muted">Préparation de la dernière étape.</p>
+          <p className="mt-4 lead text-muted">Nous préparons l'étape finale de votre inscription.</p>
         </div>
       </div>
     );
@@ -94,50 +101,89 @@ export default function Step3Register() {
   return (
     <>
       <Header />
-      <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
-        <div className="card p-4" style={{ width: '100%', maxWidth: '500px' }}>
-          <h3 className="text-center mb-4 text-primary fw-bold">
-                <i className="bi bi-geo-alt-fill me-2"></i> Étape 3/4 : Documents
-
+      <div className="container d-flex justify-content-center align-items-center my-5" style={{ minHeight: '75vh' }}>
+        <div className="card p-4 shadow-lg border-0" style={{ width: '100%', maxWidth: '550px' }}>
+          
+          <div className="text-center mb-4">
+            <h3 className="text-primary fw-bold">
+              <i className="bi bi-file-earmark-text-fill me-2"></i> Étape 3/4
             </h3>
+            <p className="text-muted">Informations sur le diplôme</p>
+            <div className="progress" style={{ height: '8px' }}>
+              <div className="progress-bar bg-primary" role="progressbar" style={{ width: '75%' }}></div>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit}>
+            {/* Numéro CNI */}
             <div className="mb-3">
-              <label className="form-label">Numéro CNI</label>
-              <input type="text" className="form-control" value={numeroCni} onChange={e => setNumeroCni(e.target.value)} />
+              <label className="form-label fw-bold small"><i className="bi bi-card-heading me-2"></i>Numéro CNI / Passeport</label>
+              <input 
+                type="text" 
+                className="form-control form-control-lg" 
+                value={numeroCni} 
+                onChange={e => setNumeroCni(e.target.value)} 
+                required
+              />
             </div>
-            <div className="mb-3">
-              <label className="form-label">Type de BAC *</label>
-              <select className="form-select" value={typeExamen} onChange={e => setTypeExamen(e.target.value)} required>
-                <option value="">-- Choisir --</option>
-                {Object.values(TypeBac).map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
+
+            <div className="row">
+              {/* Type de BAC */}
+              <div className="col-md-12 mb-3">
+                <label className="form-label fw-bold small"><i className="bi bi-award-fill me-2"></i>Type d'Examen *</label>
+                <select 
+                  className="form-select form-select-lg" 
+                  value={typeExamen} 
+                  onChange={e => setTypeExamen(e.target.value)} 
+                  required
+                >
+                  <option value="">-- Choisir le diplôme --</option>
+                  {Object.values(TypeBac).map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+
+              {/* Série */}
+              <div className="col-md-6 mb-3">
+                <label className="form-label fw-bold small">Série / Spécialité</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  placeholder="Ex: C, D, TI, GCE..." 
+                  value={serie} 
+                  onChange={e => setSerie(e.target.value)} 
+                />
+              </div>
+
+              {/* Mention */}
+              <div className="col-md-6 mb-3">
+                <label className="form-label fw-bold small">Mention obtenue *</label>
+                <select 
+                  className="form-select" 
+                  value={mention} 
+                  onChange={e => setMention(e.target.value)} 
+                  required
+                >
+                  <option value="">-- Choisir --</option>
+                  {Object.values(TypeMention).map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
             </div>
-            <div className="mb-3">
-              <label className="form-label">Série (optionnel)</label>
-              <input type="text" className="form-control" placeholder="Ex : C, D, A, E" value={serie} onChange={e => setSerie(e.target.value)} />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Mention *</label>
-              <select className="form-select" value={mention} onChange={e => setMention(e.target.value)} required>
-                <option value="">-- Choisir --</option>
-                {Object.values(TypeMention).map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </div>
+
+            <hr className="my-4" />
+
             <button 
               type="submit" 
-              className="btn btn-primary w-100" 
+              className="btn btn-primary w-100 btn-lg shadow-sm" 
               disabled={loading}
             >
-              {loading ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  Enregistrement...
-                </>
-              ) : (
-                'Continuer →'
-              )}
+              Continuer vers l'étape finale <i className="bi bi-arrow-right ms-2"></i>
             </button>
-            {error && <div className="alert alert-danger mt-3">{error}</div>}
+
+            {error && (
+              <div className="alert alert-danger mt-3 text-center small animate__animated animate__fadeIn">
+                <i className="bi bi-exclamation-circle me-2"></i> {error}
+              </div>
+            )}
           </form>
         </div>
       </div>

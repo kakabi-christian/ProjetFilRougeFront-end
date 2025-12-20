@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   BiSearch, BiChevronLeft, BiPlus, BiEditAlt, 
   BiTrash, BiLoaderAlt, BiCheck, BiErrorCircle,
-  BiWallet, BiCalendar, BiIdCard, BiLayer
+  BiWallet, BiCalendar, BiLayer
 } from 'react-icons/bi';
 import { 
   getConcours, 
@@ -10,12 +10,12 @@ import {
   updateConcours, 
   deleteConcours 
 } from '../services/concoursService';
-import anneeService from '../services/anneeService'; // Assurez-vous d'avoir ces services
+import anneeService from '../services/anneeService';
 import sessionService from '../services/sessionService';
 
 const ConcoursComponent = () => {
   // --- ÉTATS ---
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState([]); // Contiendra le tableau final
   const [annees, setAnnees] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,8 +51,13 @@ const ConcoursComponent = () => {
         anneeService.getAll(),
         sessionService.getAll()
       ]);
-      setAnnees(resAnnee.data || []);
-      setSessions(resSession.data || []);
+      
+      // Sécurisation pour les options aussi (si elles sont paginées)
+      const dataAnnees = resAnnee.data?.data || resAnnee.data || [];
+      const dataSessions = resSession.data?.data || resSession.data || [];
+      
+      setAnnees(dataAnnees);
+      setSessions(dataSessions);
     } catch (err) {
       console.error("Erreur chargement options", err);
     }
@@ -62,8 +67,15 @@ const ConcoursComponent = () => {
     setLoading(true);
     try {
       const response = await getConcours(filters);
-      setItems(response.data || []);
-      setPagination(response.pagination);
+      
+      // CORRECTION ICI : On extrait le tableau 'data' de l'objet de réponse paginé
+      const dataArray = response.data?.data || response.data || [];
+      setItems(dataArray);
+      
+      // Mise à jour de la pagination
+      if (response.data?.pagination) {
+        setPagination(response.data.pagination);
+      }
     } catch (err) {
       showNotify("Erreur", "Impossible de charger les concours.", "error");
     } finally {
@@ -179,7 +191,7 @@ const ConcoursComponent = () => {
             <tbody>
               {loading ? (
                 <tr><td colSpan="5" className="text-center py-5"><BiLoaderAlt className="spinner-border text-primary" /></td></tr>
-              ) : items.length === 0 ? (
+              ) : !Array.isArray(items) || items.length === 0 ? (
                 <tr><td colSpan="5" className="text-center py-5 text-muted">Aucun concours trouvé</td></tr>
               ) : (
                 items.map((item) => (
@@ -187,9 +199,10 @@ const ConcoursComponent = () => {
                     <td className="px-4"><span className="fw-bold text-primary">{item.code}</span></td>
                     <td><div className="text-dark fw-semibold">{item.intitule}</div></td>
                     <td>
-                      <span className="badge bg-success bg-opacity-10 text-success px-3 py-2">
-                        <BiWallet className="me-1"/> {item.montant?.toLocaleString() || 0}
-                      </span>
+                      <div className="text-dark fw-medium">
+                        <BiWallet className="me-2 text-muted"/>
+                        {item.montant ? item.montant.toLocaleString() : 0} <small className="text-muted">FCFA</small>
+                      </div>
                     </td>
                     <td>
                       <div className="small text-muted">
@@ -218,15 +231,27 @@ const ConcoursComponent = () => {
         <div className="card-footer bg-white d-flex justify-content-between align-items-center">
           <small className="text-muted">Page {pagination.page} / {pagination.lastPage}</small>
           <div className="btn-group">
-            <button className="btn btn-sm btn-outline-secondary" disabled={pagination.page <= 1} onClick={() => setFilters(f => ({...f, page: f.page - 1}))}><BiChevronLeft/></button>
-            <button className="btn btn-sm btn-primary px-3" disabled={pagination.page >= pagination.lastPage} onClick={() => setFilters(f => ({...f, page: f.page + 1}))}>Suivant</button>
+            <button 
+                className="btn btn-sm btn-outline-secondary" 
+                disabled={pagination.page <= 1} 
+                onClick={() => setFilters(f => ({...f, page: f.page - 1}))}
+            >
+                <BiChevronLeft/>
+            </button>
+            <button 
+                className="btn btn-sm btn-primary px-3" 
+                disabled={pagination.page >= pagination.lastPage} 
+                onClick={() => setFilters(f => ({...f, page: f.page + 1}))}
+            >
+                Suivant
+            </button>
           </div>
         </div>
       </div>
 
       {/* MODAL FORMULAIRE */}
       {showModal && (
-        <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+        <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 1050 }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content border-0 shadow-lg">
               <form onSubmit={handleSubmit}>
@@ -255,14 +280,14 @@ const ConcoursComponent = () => {
                       <label className="form-label small fw-bold">ANNÉE ACADÉMIQUE</label>
                       <select className="form-select" required value={formData.anneeId} onChange={(e) => setFormData({...formData, anneeId: e.target.value})}>
                         <option value="">Choisir...</option>
-                        {annees.map(a => <option key={a.id} value={a.id}>{a.libelle}</option>)}
+                        {Array.isArray(annees) && annees.map(a => <option key={a.id} value={a.id}>{a.libelle}</option>)}
                       </select>
                     </div>
                     <div className="col-md-6">
                       <label className="form-label small fw-bold">SESSION</label>
                       <select className="form-select" value={formData.sessionId} onChange={(e) => setFormData({...formData, sessionId: e.target.value})}>
                         <option value="">Optionnelle...</option>
-                        {sessions.map(s => <option key={s.id} value={s.id}>{s.nom}</option>)}
+                        {Array.isArray(sessions) && sessions.map(s => <option key={s.id} value={s.id}>{s.nom}</option>)}
                       </select>
                     </div>
                   </div>
@@ -279,7 +304,7 @@ const ConcoursComponent = () => {
         </div>
       )}
 
-      {/* MODAL NOTIFICATION (Réutilisable) */}
+      {/* MODAL NOTIFICATION */}
       {notification.show && (
         <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1060 }}>
           <div className="modal-dialog modal-sm modal-dialog-centered">
