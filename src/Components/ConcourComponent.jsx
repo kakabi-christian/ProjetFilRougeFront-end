@@ -21,7 +21,7 @@ const ConcoursComponent = () => {
   const [loading, setLoading] = useState(true);
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.userType === 'ADMIN';
+  const isAdmin = user.userType === 'ADMIN'|| user.userType === 'SUPERADMIN';
 
   // États Formulaire
   const [showModal, setShowModal] = useState(false);
@@ -286,7 +286,7 @@ const ConcoursComponent = () => {
                     <div className="col-md-6">
                       <label className="form-label small fw-bold">SESSION</label>
                       <select className="form-select" value={formData.sessionId} onChange={(e) => setFormData({...formData, sessionId: e.target.value})}>
-                        <option value="">Optionnelle...</option>
+                        <option value="">Choisir une seesion...</option>
                         {Array.isArray(sessions) && sessions.map(s => <option key={s.id} value={s.id}>{s.nom}</option>)}
                       </select>
                     </div>

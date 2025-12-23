@@ -677,36 +677,6 @@ export default function StatistiqueContent() {
 
       {/* Données supplémentaires AVEC RENDU STRUCTURÉ */}
       <div className="row g-4">
-        {/* Feedbacks */}
-        <div className="col-lg-6">
-          <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
-            <div className="card-header border-0 py-4 px-4" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
-              <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
-                <i className="bi bi-chat-dots-fill me-2"></i>
-                Feedbacks des Utilisateurs
-              </h5>
-            </div>
-            <div className="card-body p-0" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {renderStructuredData('Feedbacks', stats.feedbacks)}
-            </div>
-          </div>
-        </div>
-
-        {/* Notifications */}
-        <div className="col-lg-6">
-          <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
-            <div className="card-header border-0 py-4 px-4" style={{ background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
-              <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
-                <i className="bi bi-bell-fill me-2"></i>
-                Statistiques Notifications
-              </h5>
-            </div>
-            <div className="card-body p-0" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-              {renderStructuredData('Notifications', stats.notifications)}
-            </div>
-          </div>
-        </div>
-
         {/* Dashboard Combiné : RENDU SPÉCIFIQUE */}
         <div className="col-12">
           <div className="card border-0 shadow-lg" style={{ borderRadius: '20px' }}>

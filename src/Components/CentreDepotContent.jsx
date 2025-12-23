@@ -13,7 +13,7 @@ const CentreDepotContent = () => {
   
   // Récupération du rôle
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.userType === 'ADMIN';
+  const isAdmin = user.userType === 'ADMIN'|| user.userType === 'SUPERADMIN';
 
   // États Modals
   const [showModal, setShowModal] = useState(false);

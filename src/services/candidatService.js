@@ -1,9 +1,39 @@
+//src/services/candidatService.js
 import api from './api';
 
 /**
  * Service pour gérer les opérations liées aux candidats
  */
 const candidatService = {
+  /**
+   * RÉCUPÈRE L'INTITULÉ DU CONCOURS (Dashboard)
+   */
+  getDashboardConcoursInfo: async (userId) => {
+    console.log(`📥 [candidatService] getDashboardConcoursInfo() pour userId: ${userId}`);
+    try {
+      const response = await api.get(`/candidates/dashboard/concours-info/${userId}`);
+      console.log('✅ Infos concours récupérées');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erreur getDashboardConcoursInfo', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * RÉCUPÈRE LA DATE CIBLE DU CONCOURS (Dashboard Countdown)
+   */
+  getDashboardCountdown: async (userId) => {
+    console.log(`📥 [candidatService] getDashboardCountdown() pour userId: ${userId}`);
+    try {
+      const response = await api.get(`/candidates/dashboard/countdown/${userId}`);
+      console.log('✅ Date countdown récupérée');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erreur getDashboardCountdown', error.response?.data || error.message);
+      throw error;
+    }
+  },
 
   /**
    * Récupère la liste détaillée des candidats avec filtres et pagination

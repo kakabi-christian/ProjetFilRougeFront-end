@@ -13,7 +13,7 @@ const ExamenCentreComponent = () => {
   
   // Récupération du rôle utilisateur
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.userType === 'ADMIN';
+  const isAdmin = user.userType === 'ADMIN'|| user.userType === 'SUPERADMIN';
 
   // États du Formulaire (Modal)
   const [showModal, setShowModal] = useState(false);

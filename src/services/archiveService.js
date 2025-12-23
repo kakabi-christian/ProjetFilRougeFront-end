@@ -1,11 +1,13 @@
 import api from './api.js';
 
+// Configuration de l'URL de base pour les téléchargements
+const API_URL = 'http://localhost:3000'; 
+
 // ==================== ANNEES ====================
 export const getAnnees = async () => {
   console.log('📡 [API] Appel : GET /annees');
   try {
     const response = await api.get('/annees');
-    console.log('✅ [API] Années reçues :', response.data);
     return response;
   } catch (error) {
     console.error('❌ [API] Erreur getAnnees :', error);
@@ -15,10 +17,8 @@ export const getAnnees = async () => {
 
 // ==================== DEPARTEMENTS ====================
 export const getDepartements = async () => {
-  console.log('📡 [API] Appel : GET /departements');
   try {
     const response = await api.get('/departements');
-    console.log('✅ [API] Départements reçus :', response.data);
     return response;
   } catch (error) {
     console.error('❌ [API] Erreur getDepartements :', error);
@@ -28,69 +28,72 @@ export const getDepartements = async () => {
 
 // ==================== FILIERES ====================
 export const getFilieresByDepartement = async (id) => {
-  console.log('📡 [API] Appel : GET /filieres/departement/', id);
-  if (!id) {
-    console.warn('⚠️ [API] ID département manquant');
-  }
-
   try {
     const response = await api.get(`/filieres/departement/${id}`);
-    console.log(
-      `✅ [API] Filières reçues pour le département ${id} :`,
-      response.data
-    );
     return response;
   } catch (error) {
-    console.error(
-      `❌ [API] Erreur getFilieresByDepartement (id=${id}) :`,
-      error
-    );
+    console.error(`❌ Erreur getFilieresByDepartement (id=${id}) :`, error);
     throw error;
   }
 };
 
 // ==================== EPREUVES PAR SPECIALITE ====================
 export const getEpreuvesBySpecialite = async (specialiteId) => {
-  console.log('📡 [API] Appel : GET /epreuves/specialite/', specialiteId);
-  if (!specialiteId) {
-    console.warn('⚠️ [API] ID spécialité manquant');
-  }
-
   try {
     const response = await api.get(`/epreuves/specialite/${specialiteId}`);
-    console.log(
-      `✅ [API] Épreuves reçues pour la spécialité ${specialiteId} :`,
-      response.data
-    );
     return response;
   } catch (error) {
-    console.error(
-      `❌ [API] Erreur getEpreuvesBySpecialite (id=${specialiteId}) :`,
-      error
-    );
+    console.error(`❌ Erreur getEpreuvesBySpecialite (id=${specialiteId}) :`, error);
     throw error;
   }
 };
 
 // ==================== ARCHIVES ====================
 export const getArchivesByEpreuve = async (id) => {
-  console.log('📡 [API] Appel : GET /archives/epreuve/', id);
-  if (!id) {
-    console.warn('⚠️ [API] ID épreuve manquant');
-  }
-
   try {
     const response = await api.get(`/archives/epreuve/${id}`);
-    console.log(
-      `✅ [API] Archives reçues pour l’épreuve ${id} :`,
-      response.data
-    );
     return response;
   } catch (error) {
-    console.error(
-      `❌ [API] Erreur getArchivesByEpreuve (id=${id}) :`,
-      error
-    );
+    console.error(`❌ Erreur getArchivesByEpreuve (id=${id}) :`, error);
     throw error;
   }
+};
+
+// ==================== ARCHIVES PERSONNELLES (CANDIDAT) ====================
+
+export const getMyArchivesBySpeciality = async (params = {}) => {
+  const { anneeId, search } = params;
+  try {
+    const queryParams = new URLSearchParams();
+    if (anneeId) queryParams.append('anneeId', anneeId);
+    if (search) queryParams.append('search', search);
+
+    const queryString = queryParams.toString();
+    const url = `/archives/my-speciality${queryString ? `?${queryString}` : ''}`;
+
+    const response = await api.get(url);
+    return response;
+  } catch (error) {
+    console.error('❌ Erreur getMyArchivesBySpeciality :', error);
+    throw error;
+  }
+};
+
+// ==================== NOUVEAU : TELECHARGEMENT SECURISE ====================
+
+/**
+ * Déclenche le téléchargement d'un fichier via la route spécialisée du backend.
+ * @param {string} fileUrl - L'URL stockée en base (ex: /uploads/abc.pdf)
+ */
+export const downloadArchiveFile = (fileUrl) => {
+  if (!fileUrl) return;
+
+  // On extrait juste le nom du fichier (ex: abc.pdf)
+  const filename = fileUrl.split('/').pop();
+  
+  // On construit l'URL pointant vers notre nouvelle méthode du Controller
+  const downloadUrl = `${API_URL}/archives/download/${filename}`;
+
+  // On ouvre dans un nouvel onglet pour forcer le téléchargement
+  window.open(downloadUrl, '_blank');
 };

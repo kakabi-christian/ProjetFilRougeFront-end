@@ -30,6 +30,14 @@ import SessionsContent from './Contents/SessionsContent';
 import ArchiveContent from './Contents/ArchiveContent';
 import NiveauContent from './Contents/NiveauContent';
 import ContentArchive from './Contents/ContentArchive';
+import CandidatDashboard from './Pages/CandidatDashboard';
+import CandidatHomeContent from './Contents/CandidatHomeContent';
+import FeedBackContent from './Contents/FeedBackContent';
+import CandidatProfileContent from './Contents/CandidatProfileContent';
+import CandidatArchiveContent from './Contents/CandidatArchiveContent';
+import CandidateInfoContent from './Contents/CandidatInfoContent';
+import RoleContent from './Contents/RoleContent';
+import AdminContent from './Contents/AdminContent';
 function App() {
   return (
     <Router>
@@ -47,6 +55,16 @@ function App() {
         <Route path='/Step3Register' element={<Step3Register />} />
         <Route path='/Step4Register' element={<Step4Register />} />
         <Route path='/CandidateInfo' element={<CandidateInfo />} />
+
+        {/* Dashboard candidat avec sidebar */}
+        <Route path='/candidat/*' element={<CandidatDashboard />}>
+          {/* Routes enfants du dashboard */}
+          <Route path='home' element={<CandidatHomeContent />} />
+          <Route path='feeback' element={<FeedBackContent />} />
+          <Route path='profil' element={<CandidatProfileContent />} />
+          <Route path='dossier' element={<CandidateInfoContent />} />
+          <Route path='archives' element={<CandidatArchiveContent />} />
+        </Route>
 
         {/* Dashboard admin avec sidebar */}
         <Route path='/admin/*' element={<AdminDashboard />}>
@@ -69,6 +87,8 @@ function App() {
           <Route path='niveaux' element={<NiveauContent />} />
           <Route path='archives' element={<ArchiveContent />} />
           <Route path='archive' element={<ContentArchive />} />
+          <Route path='roles' element={<RoleContent />} />
+          <Route path='admin' element={<AdminContent />} />
           {/* Tu pourras ajouter d'autres routes enfants ici */}
         </Route>
       </Routes>

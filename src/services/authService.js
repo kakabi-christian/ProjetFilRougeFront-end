@@ -100,28 +100,37 @@ export const registerCandidateStep4 = async (step4Data) => {
  * @param {string} password
  * @param {'ADMIN'|'CANDIDATE'} userType
  */
-export const loginUser = async ({ email, password, numeroRecu, userType }) => {
+export const loginUser = async ({ codeAdmin, password, numeroRecu, userType }) => {
   try {
     let payload = { userType };
 
-    if (userType === 'ADMIN') {
-      payload.email = email;       // admin = email + password
+    // ===================== LOGIQUE STAFF (ADMIN & SUPERADMIN) =====================
+    if (userType === 'ADMIN' || userType === 'SUPERADMIN') {
+      // On utilise uniquement le codeAdmin pour les administrateurs
+      payload.codeAdmin = codeAdmin; 
       payload.password = password;
-    } else if (userType === 'CANDIDATE') {
-      payload.numeroRecu = numeroRecu; // candidat = numeroRecu + password
+    } 
+    // ===================== LOGIQUE CANDIDAT =====================
+    else if (userType === 'CANDIDATE') {
+      payload.numeroRecu = numeroRecu;
       payload.password = password;
     }
 
+    console.log(`[loginUser] Tentative de connexion ${userType} avec identifiant: ${codeAdmin || numeroRecu}`);
+
     const response = await api.post('/auth/login', payload);
+    
     console.log('[loginUser] Réponse API:', response.data);
     return response.data;
   } catch (error) {
     console.error('[loginUser] Erreur:', error);
-    if (error.response) console.error('Détails:', error.response.data);
+    if (error.response) {
+      console.error('Détails:', error.response.data);
+      throw error.response.data;
+    }
     throw error;
   }
 };
-
 
 
 /**

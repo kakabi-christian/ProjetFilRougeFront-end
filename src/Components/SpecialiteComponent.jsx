@@ -14,7 +14,7 @@ const SpecialiteComponent = () => {
   const [loading, setLoading] = useState(true);
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.userType === 'ADMIN';
+  const isAdmin = user.userType === 'ADMIN'|| user.userType === 'SUPERADMIN';
 
   // États Modals
   const [showModal, setShowModal] = useState(false);

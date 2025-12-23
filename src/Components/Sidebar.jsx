@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   BiBarChart, BiLogOut, BiStats, BiBuildings, BiCalendar,
-  BiLayer, BiArchive, BiTask, BiChevronDown
+  BiLayer, BiArchive, BiTask, BiChevronDown, BiShieldQuarter, BiUserCircle
 } from "react-icons/bi";
 import { AiOutlinePieChart, AiOutlineDashboard } from "react-icons/ai";
 import {
-  FaUserFriends, FaUniversity, FaSchool, FaBook, FaListUl, FaUser
+  FaUserFriends, FaUniversity, FaSchool, FaBook, FaListUl, FaUserShield, FaUserCog
 } from "react-icons/fa";
 import { MdOutlineClass, MdHistoryEdu } from "react-icons/md";
+import { RiListSettingsFill } from "react-icons/ri";
 
 export default function Sidebar() {
   const [showModal, setShowModal] = useState(false);
@@ -19,6 +20,7 @@ export default function Sidebar() {
     structure: false,
     organisation: false,
     cadre: false,
+    securite: false, // Nouveau groupe
     analyse: false
   });
 
@@ -60,7 +62,7 @@ export default function Sidebar() {
         <div className="bg-white p-1 rounded me-2 shadow-sm">
           <Icon size={16} className="text-primary" />
         </div>
-        <span className="text-uppercase fw-bold" style={{ fontSize: "0.75rem", letterSpacing: "0.5px" }}>
+        <span className="text-uppercase fw-bold" style={{ fontSize: "0.72rem", letterSpacing: "0.5px" }}>
           {title}
         </span>
       </div>
@@ -85,7 +87,7 @@ export default function Sidebar() {
       }}
     >
       <div style={{ minHeight: 0 }}>
-        <div className="ps-2 pt-1 pb-2">
+        <div className="ps-2 pt-1 pb-1">
           {children}
         </div>
       </div>
@@ -97,7 +99,7 @@ export default function Sidebar() {
       <div className="sidebar bg-white border-end d-flex flex-column shadow-sm"
            style={{ width: "270px", height: "100vh", position: "sticky", top: 0 }}>
 
-        {/* Logo */}
+        {/* Logo Section */}
         <div className="p-4">
           <div className="bg-primary text-white p-3 rounded-4 d-flex align-items-center shadow-lg">
             <AiOutlineDashboard size={24} className="me-2" />
@@ -105,84 +107,94 @@ export default function Sidebar() {
           </div>
         </div>
 
+        {/* Navigation Content */}
         <div className="flex-grow-1 px-3" style={{ overflowY: "auto", scrollbarWidth: "none" }}>
           <ul className="nav flex-column">
             
-           
-
-            {/* GESTION */}
-            <GroupHeader title="Gestion des concours" groupId="gestion" isOpen={openGroups.gestion} icon={BiTask} />
+            {/* 1. GESTION OPÉRATIONNELLE */}
+            <GroupHeader title="Gestion des flux" groupId="gestion" isOpen={openGroups.gestion} icon={BiTask} />
             <AnimatedGroup isOpen={openGroups.gestion}>
               <NavLink to="/admin/candidats" className="nav-link" style={linkStyle}><FaUserFriends className="me-3" /> Candidats</NavLink>
               <NavLink to="/admin/concours" className="nav-link" style={linkStyle}><BiTask className="me-3" /> Concours</NavLink>
               <NavLink to="/admin/archive" className="nav-link" style={linkStyle}><BiArchive className="me-3" /> Archives</NavLink>
             </AnimatedGroup>
 
-            {/* STRUCTURE */}
+            {/* 2. STRUCTURE ACADÉMIQUE (Le contenu du concours) */}
             <GroupHeader title="Structure académique" groupId="structure" isOpen={openGroups.structure} icon={BiBuildings} />
             <AnimatedGroup isOpen={openGroups.structure}>
               <NavLink to="/admin/departements" className="nav-link" style={linkStyle}><BiBuildings className="me-3" /> Départements</NavLink>
               <NavLink to="/admin/filieres" className="nav-link" style={linkStyle}><FaBook className="me-3" /> Filières</NavLink>
-              <NavLink to="/admin/specialites" className="nav-link" style={linkStyle}><FaListUl className="me-3" /> Spécialités</NavLink>
+              <NavLink to="/admin/specialites" className="nav-link" style={linkStyle}><RiListSettingsFill className="me-3" /> Spécialités</NavLink>
             </AnimatedGroup>
 
-            {/* CENTRES */}
-            <GroupHeader title="Centres & sites" groupId="organisation" isOpen={openGroups.organisation} icon={FaUniversity} />
-            <AnimatedGroup isOpen={openGroups.organisation}>
-              <NavLink to="/admin/centre-depot" className="nav-link" style={linkStyle}><FaUniversity className="me-3" /> Centres de dépôt</NavLink>
-              <NavLink to="/admin/centre-examen" className="nav-link" style={linkStyle}><FaSchool className="me-3" /> Centres d’examen</NavLink>
-            </AnimatedGroup>
-
-            {/* CADRE */}
-            <GroupHeader title="Cadre académique" groupId="cadre" isOpen={openGroups.cadre} icon={BiCalendar} />
+            {/* 3. CADRE TEMPOREL & ÉVALUATION */}
+            <GroupHeader title="Calendrier & Épreuves" groupId="cadre" isOpen={openGroups.cadre} icon={BiCalendar} />
             <AnimatedGroup isOpen={openGroups.cadre}>
-              <NavLink to="/admin/annees" className="nav-link" style={linkStyle}><BiCalendar className="me-3" /> Années</NavLink>
+              <NavLink to="/admin/annees" className="nav-link" style={linkStyle}><BiCalendar className="me-3" /> Années académiques</NavLink>
               <NavLink to="/admin/sessions" className="nav-link" style={linkStyle}><MdHistoryEdu className="me-3" /> Sessions</NavLink>
               <NavLink to="/admin/epreuves" className="nav-link" style={linkStyle}><MdOutlineClass className="me-3" /> Épreuves</NavLink>
               <NavLink to="/admin/niveaux" className="nav-link" style={linkStyle}><BiLayer className="me-3" /> Niveaux</NavLink>
             </AnimatedGroup>
 
-            {/* ANALYSE */}
+            {/* 4. LOGISTIQUE */}
+            <GroupHeader title="Centres & Logistique" groupId="organisation" isOpen={openGroups.organisation} icon={FaUniversity} />
+            <AnimatedGroup isOpen={openGroups.organisation}>
+              <NavLink to="/admin/centre-depot" className="nav-link" style={linkStyle}><FaUniversity className="me-3" /> Centres de dépôt</NavLink>
+              <NavLink to="/admin/centre-examen" className="nav-link" style={linkStyle}><FaSchool className="me-3" /> Centres d’examen</NavLink>
+            </AnimatedGroup>
+
+            {/* 5. SÉCURITÉ & ACCÈS (Dédié aux Admins et Rôles) */}
+            <GroupHeader title="Sécurité & Accès" groupId="securite" isOpen={openGroups.securite} icon={BiShieldQuarter} />
+            <AnimatedGroup isOpen={openGroups.securite}>
+              <NavLink to="/admin/admin" className="nav-link" style={linkStyle}><FaUserShield className="me-3" /> Administrateurs</NavLink>
+              <NavLink to="/admin/roles" className="nav-link" style={linkStyle}><FaUserCog className="me-3" /> Rôles & Permissions</NavLink>
+            </AnimatedGroup>
+
+            {/* 6. ANALYSE */}
             <GroupHeader title="Analyses & rapports" groupId="analyse" isOpen={openGroups.analyse} icon={BiStats} />
             <AnimatedGroup isOpen={openGroups.analyse}>
               <NavLink to="/admin/statistiques" className="nav-link" style={linkStyle}><BiStats className="me-3" /> Statistiques</NavLink>
               <NavLink to="/admin/rapport" className="nav-link" style={linkStyle}><BiBarChart className="me-3" /> Rapports</NavLink>
               <NavLink to="/admin/graphiques" className="nav-link" style={linkStyle}><AiOutlinePieChart className="me-3" /> Graphiques</NavLink>
             </AnimatedGroup>
-             {/* PROFIL (Ajouté ici) */}
-            <li className="nav-item mb-2">
-              <NavLink to="/admin/profile" className="nav-link" style={linkStyle}>
-                <FaUser size={18} className="me-3" /> Mon Profil
-              </NavLink>
-            </li>
+
+            {/* PROFIL PERSO (Hors groupe pour accès rapide) */}
+            <div className="mt-4 pt-3 border-top">
+                <NavLink to="/admin/profile" className="nav-link" style={linkStyle}>
+                    <BiUserCircle size={20} className="me-3 text-secondary" /> 
+                    <span className="text-secondary">Mon Profil</span>
+                </NavLink>
+            </div>
 
           </ul>
         </div>
 
         {/* LOGOUT */}
-        <div className="p-4 border-top">
+        <div className="p-4 border-top bg-light">
           <button className="btn btn-outline-danger w-100 fw-bold d-flex align-items-center justify-content-center shadow-sm" 
-                  style={{ borderRadius: "10px", transition: "all 0.3s", padding: "10px" }}
+                  style={{ borderRadius: "12px", transition: "all 0.3s", padding: "10px" }}
                   onClick={() => setShowModal(true)}>
             <BiLogOut className="me-2" size={20} /> Déconnexion
           </button>
         </div>
       </div>
 
-      {/* MODALE DE CONFIRMATION (Simple intégration Bootstrap) */}
+      {/* MODALE DE CONFIRMATION */}
       {showModal && (
-        <div className="modal fade show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
+        <div className="modal fade show d-block" style={{ backgroundColor: "rgba(15, 23, 42, 0.5)", backdropFilter: "blur(6px)", zIndex: 1100 }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg" style={{ borderRadius: "15px" }}>
-              <div className="modal-body p-4 text-center">
-                <div className="text-danger mb-3">
-                  <BiLogOut size={50} />
+            <div className="modal-content border-0 shadow-lg" style={{ borderRadius: "20px" }}>
+              <div className="modal-body p-5 text-center">
+                <div className="text-danger mb-4">
+                  <div className="bg-danger bg-opacity-10 d-inline-block p-3 rounded-circle">
+                    <BiLogOut size={40} />
+                  </div>
                 </div>
-                <h5 className="fw-bold">Confirmation</h5>
-                <p className="text-muted">Êtes-vous sûr de vouloir vous déconnecter ?</p>
-                <div className="d-flex gap-2 mt-4">
-                  <button className="btn btn-light w-100 fw-bold" onClick={() => setShowModal(false)} style={{ borderRadius: "10px" }}>Annuler</button>
-                  <button className="btn btn-danger w-100 fw-bold" onClick={handleLogout} style={{ borderRadius: "10px" }}>Déconnexion</button>
+                <h4 className="fw-bold text-dark">Déconnexion</h4>
+                <p className="text-muted">Souhaitez-vous vraiment quitter votre session de gestion ?</p>
+                <div className="d-flex gap-3 mt-4">
+                  <button className="btn btn-light w-100 fw-bold py-2" onClick={() => setShowModal(false)} style={{ borderRadius: "10px" }}>Rester</button>
+                  <button className="btn btn-danger w-100 fw-bold py-2 shadow-sm" onClick={handleLogout} style={{ borderRadius: "10px" }}>Quitter</button>
                 </div>
               </div>
             </div>
