@@ -35,15 +35,18 @@ const candidatService = {
   },
 
   /**
-   * Récupère la liste détaillée des candidats avec filtres (Search, Filière, Spécialité, Sexe)
+   * Récupère la liste détaillée des candidats avec tous les filtres
    */
   getDetailedList: async (params = {}) => {
     console.log('📥 [candidatService] getDetailedList() appelé');
 
+    // On inclut les nouveaux filtres pour le backend
     const finalParams = {
       search: params.search || undefined,
       filiereId: params.filiereId || undefined,
       specialiteId: params.specialiteId || undefined, 
+      centreExamenId: params.centreExamenId || undefined, // Ajouté
+      centreDepotId: params.centreDepotId || undefined,   // Ajouté
       sexe: params.sexe || undefined,
       statut: params.statut || undefined, 
       page: params.page || 1,
@@ -51,7 +54,7 @@ const candidatService = {
     };
 
     try {
-      console.log('🚀 Requête GET /candidates/list-detailed en cours...');
+      console.log('🚀 Requête GET /candidates/list-detailed avec filtres...');
       const response = await api.get('/candidates/list-detailed', {
         params: finalParams
       });
@@ -64,7 +67,7 @@ const candidatService = {
   },
 
   /**
-   * NOUVEAU : Récupère les spécialités rattachées à une filière spécifique
+   * Récupère les spécialités rattachées à une filière spécifique
    */
   getSpecialitesByFiliere: async (filiereId) => {
     if (!filiereId) return [];
@@ -105,6 +108,21 @@ const candidatService = {
       return response.data;
     } catch (error) {
       console.error('❌ Erreur getCentresExamen', error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * NOUVEAU : Récupère les centres de dépôt
+   */
+  getCentresDepot: async () => {
+    console.log('📥 [candidatService] getCentresDepot() appelé');
+    try {
+      const response = await api.get('/centre-depot'); // Assure-toi que cette route existe au backend
+      console.log('✅ Centres de dépôt récupérés');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erreur getCentresDepot', error.message);
       throw error;
     }
   },
