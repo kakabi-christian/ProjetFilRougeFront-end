@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+// Import du service pour le compteur
+import DossierService from "../services/DossierService"; 
+
 import {
   BiBarChart, BiLogOut, BiStats, BiBuildings, BiCalendar,
-  BiLayer, BiArchive, BiTask, BiChevronDown, BiShieldQuarter, BiUserCircle
+  BiLayer, BiArchive, BiTask, BiChevronDown, BiShieldQuarter, 
+  BiUserCircle, BiFile, BiFolderOpen, BiCog
 } from "react-icons/bi";
 import { AiOutlinePieChart, AiOutlineDashboard } from "react-icons/ai";
 import {
@@ -13,6 +17,7 @@ import { RiListSettingsFill } from "react-icons/ri";
 
 export default function Sidebar() {
   const [showModal, setShowModal] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0); // État pour stocker le nombre de dossiers
   const navigate = useNavigate();
 
   const [openGroups, setOpenGroups] = useState({
@@ -20,9 +25,36 @@ export default function Sidebar() {
     structure: false,
     organisation: false,
     cadre: false,
-    securite: false, // Nouveau groupe
+    securite: false,
+    dossiers: false, 
     analyse: false
   });
+
+  // --- RÉCUPÉRATION DU COMPTEUR ---
+// ... dans ton fichier Sidebar.jsx, modifie le useEffect :
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const data = await DossierService.getPendingCount();
+        setPendingCount(data.pendingCount);
+      } catch (error) {
+        console.error("[Sidebar] Erreur compteur:", error);
+      }
+    };
+
+    fetchCount();
+
+    // --- AJOUT ICI : Écouteur d'événement ---
+    window.addEventListener("dossierStatusUpdated", fetchCount);
+    
+    // Nettoyage de l'intervalle et de l'écouteur
+    const interval = setInterval(fetchCount, 60000);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("dossierStatusUpdated", fetchCount);
+    };
+  }, []);
 
   const toggleGroup = (group) => {
     setOpenGroups(prev => ({ ...prev, [group]: !prev[group] }));
@@ -30,6 +62,7 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     setShowModal(false);
+    localStorage.removeItem('access_token');
     navigate("/Login");
   };
 
@@ -40,6 +73,7 @@ export default function Sidebar() {
     padding: "10px 15px",
     display: "flex",
     alignItems: "center",
+    justifyContent: "space-between", // Permet de pousser le badge à l'extrémité droite
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     backgroundColor: isActive ? "#eef4ff" : "transparent",
     color: isActive ? "#0d6efd" : "#6c757d",
@@ -114,55 +148,76 @@ export default function Sidebar() {
             {/* 1. GESTION OPÉRATIONNELLE */}
             <GroupHeader title="Gestion des flux" groupId="gestion" isOpen={openGroups.gestion} icon={BiTask} />
             <AnimatedGroup isOpen={openGroups.gestion}>
-              <NavLink to="/admin/candidats" className="nav-link" style={linkStyle}><FaUserFriends className="me-3" /> Candidats</NavLink>
-              <NavLink to="/admin/concours" className="nav-link" style={linkStyle}><BiTask className="me-3" /> Concours</NavLink>
-              <NavLink to="/admin/archive" className="nav-link" style={linkStyle}><BiArchive className="me-3" /> Archives</NavLink>
+              <NavLink to="/admin/candidats" className="nav-link" style={linkStyle}><span><FaUserFriends className="me-3" /> Candidats</span></NavLink>
+              <NavLink to="/admin/concours" className="nav-link" style={linkStyle}><span><BiTask className="me-3" /> Concours</span></NavLink>
+              <NavLink to="/admin/archive" className="nav-link" style={linkStyle}><span><BiArchive className="me-3" /> Archives</span></NavLink>
             </AnimatedGroup>
 
-            {/* 2. STRUCTURE ACADÉMIQUE (Le contenu du concours) */}
+            {/* 2. CONFIGURATION DES PIÈCES */}
+            <GroupHeader title="Paramétrage Dossiers" groupId="dossiers" isOpen={openGroups.dossiers} icon={BiCog} />
+            <AnimatedGroup isOpen={openGroups.dossiers}>
+              <NavLink to="/admin/piece-dossier" className="nav-link" style={linkStyle}><span><BiFile className="me-3" /> Types de pièces</span></NavLink>
+              
+              <NavLink to="/admin/dossier" className="nav-link" style={linkStyle}>
+                <div className="d-flex align-items-center">
+                  <BiFolderOpen className="me-3" /> 
+                  Validation Dossiers
+                </div>
+                {/* Badge du compteur */}
+                {pendingCount > 0 && (
+                  <span className="badge rounded-pill bg-danger animate-pulse" style={{ fontSize: '0.65rem', padding: '5px 8px' }}>
+                    {pendingCount}
+                  </span>
+                )}
+              </NavLink>
+            </AnimatedGroup>
+
+            {/* 3. STRUCTURE ACADÉMIQUE */}
             <GroupHeader title="Structure académique" groupId="structure" isOpen={openGroups.structure} icon={BiBuildings} />
             <AnimatedGroup isOpen={openGroups.structure}>
-              <NavLink to="/admin/departements" className="nav-link" style={linkStyle}><BiBuildings className="me-3" /> Départements</NavLink>
-              <NavLink to="/admin/filieres" className="nav-link" style={linkStyle}><FaBook className="me-3" /> Filières</NavLink>
-              <NavLink to="/admin/specialites" className="nav-link" style={linkStyle}><RiListSettingsFill className="me-3" /> Spécialités</NavLink>
+              <NavLink to="/admin/departements" className="nav-link" style={linkStyle}><span><BiBuildings className="me-3" /> Départements</span></NavLink>
+              <NavLink to="/admin/filieres" className="nav-link" style={linkStyle}><span><FaBook className="me-3" /> Filières</span></NavLink>
+              <NavLink to="/admin/specialites" className="nav-link" style={linkStyle}><span><RiListSettingsFill className="me-3" /> Spécialités</span></NavLink>
             </AnimatedGroup>
 
-            {/* 3. CADRE TEMPOREL & ÉVALUATION */}
+            {/* 4. CADRE TEMPOREL & ÉVALUATION */}
             <GroupHeader title="Calendrier & Épreuves" groupId="cadre" isOpen={openGroups.cadre} icon={BiCalendar} />
             <AnimatedGroup isOpen={openGroups.cadre}>
-              <NavLink to="/admin/annees" className="nav-link" style={linkStyle}><BiCalendar className="me-3" /> Années académiques</NavLink>
-              <NavLink to="/admin/sessions" className="nav-link" style={linkStyle}><MdHistoryEdu className="me-3" /> Sessions</NavLink>
-              <NavLink to="/admin/epreuves" className="nav-link" style={linkStyle}><MdOutlineClass className="me-3" /> Épreuves</NavLink>
-              <NavLink to="/admin/niveaux" className="nav-link" style={linkStyle}><BiLayer className="me-3" /> Niveaux</NavLink>
+              <NavLink to="/admin/annees" className="nav-link" style={linkStyle}><span><BiCalendar className="me-3" /> Années académiques</span></NavLink>
+              <NavLink to="/admin/sessions" className="nav-link" style={linkStyle}><span><MdHistoryEdu className="me-3" /> Sessions</span></NavLink>
+              <NavLink to="/admin/epreuves" className="nav-link" style={linkStyle}><span><MdOutlineClass className="me-3" /> Épreuves</span></NavLink>
+              <NavLink to="/admin/niveaux" className="nav-link" style={linkStyle}><span><BiLayer className="me-3" /> Niveaux</span></NavLink>
             </AnimatedGroup>
 
-            {/* 4. LOGISTIQUE */}
+            {/* 5. LOGISTIQUE */}
             <GroupHeader title="Centres & Logistique" groupId="organisation" isOpen={openGroups.organisation} icon={FaUniversity} />
             <AnimatedGroup isOpen={openGroups.organisation}>
-              <NavLink to="/admin/centre-depot" className="nav-link" style={linkStyle}><FaUniversity className="me-3" /> Centres de dépôt</NavLink>
-              <NavLink to="/admin/centre-examen" className="nav-link" style={linkStyle}><FaSchool className="me-3" /> Centres d’examen</NavLink>
+              <NavLink to="/admin/centre-depot" className="nav-link" style={linkStyle}><span><FaUniversity className="me-3" /> Centres de dépôt</span></NavLink>
+              <NavLink to="/admin/centre-examen" className="nav-link" style={linkStyle}><span><FaSchool className="me-3" /> Centres d’examen</span></NavLink>
             </AnimatedGroup>
 
-            {/* 5. SÉCURITÉ & ACCÈS (Dédié aux Admins et Rôles) */}
+            {/* 6. SÉCURITÉ & ACCÈS */}
             <GroupHeader title="Sécurité & Accès" groupId="securite" isOpen={openGroups.securite} icon={BiShieldQuarter} />
             <AnimatedGroup isOpen={openGroups.securite}>
-              <NavLink to="/admin/admin" className="nav-link" style={linkStyle}><FaUserShield className="me-3" /> Administrateurs</NavLink>
-              <NavLink to="/admin/roles" className="nav-link" style={linkStyle}><FaUserCog className="me-3" /> Rôles & Permissions</NavLink>
+              <NavLink to="/admin/admin" className="nav-link" style={linkStyle}><span><FaUserShield className="me-3" /> Administrateurs</span></NavLink>
+              <NavLink to="/admin/roles" className="nav-link" style={linkStyle}><span><FaUserCog className="me-3" /> Rôles & Permissions</span></NavLink>
             </AnimatedGroup>
 
-            {/* 6. ANALYSE */}
+            {/* 7. ANALYSE */}
             <GroupHeader title="Analyses & rapports" groupId="analyse" isOpen={openGroups.analyse} icon={BiStats} />
             <AnimatedGroup isOpen={openGroups.analyse}>
-              <NavLink to="/admin/statistiques" className="nav-link" style={linkStyle}><BiStats className="me-3" /> Statistiques</NavLink>
-              <NavLink to="/admin/rapport" className="nav-link" style={linkStyle}><BiBarChart className="me-3" /> Rapports</NavLink>
-              <NavLink to="/admin/graphiques" className="nav-link" style={linkStyle}><AiOutlinePieChart className="me-3" /> Graphiques</NavLink>
+              <NavLink to="/admin/statistiques" className="nav-link" style={linkStyle}><span><BiStats className="me-3" /> Statistiques</span></NavLink>
+              <NavLink to="/admin/rapport" className="nav-link" style={linkStyle}><span><BiBarChart className="me-3" /> Rapports</span></NavLink>
+              <NavLink to="/admin/graphiques" className="nav-link" style={linkStyle}><span><AiOutlinePieChart className="me-3" /> Graphiques</span></NavLink>
             </AnimatedGroup>
 
-            {/* PROFIL PERSO (Hors groupe pour accès rapide) */}
+            {/* PROFIL PERSO */}
             <div className="mt-4 pt-3 border-top">
                 <NavLink to="/admin/profile" className="nav-link" style={linkStyle}>
-                    <BiUserCircle size={20} className="me-3 text-secondary" /> 
-                    <span className="text-secondary">Mon Profil</span>
+                    <div className="d-flex align-items-center">
+                      <BiUserCircle size={20} className="me-3 text-secondary" /> 
+                      <span className="text-secondary">Mon Profil</span>
+                    </div>
                 </NavLink>
             </div>
 

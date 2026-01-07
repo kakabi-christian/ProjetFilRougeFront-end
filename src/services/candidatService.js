@@ -1,4 +1,3 @@
-//src/services/candidatService.js
 import api from './api';
 
 /**
@@ -36,48 +35,47 @@ const candidatService = {
   },
 
   /**
-   * Récupère la liste détaillée des candidats avec filtres et pagination
+   * Récupère la liste détaillée des candidats avec filtres (Search, Filière, Spécialité, Sexe)
    */
   getDetailedList: async (params = {}) => {
     console.log('📥 [candidatService] getDetailedList() appelé');
-    console.debug('🔍 Paramètres reçus:', params);
 
     const finalParams = {
       search: params.search || undefined,
       filiereId: params.filiereId || undefined,
+      specialiteId: params.specialiteId || undefined, 
       sexe: params.sexe || undefined,
+      statut: params.statut || undefined, 
       page: params.page || 1,
       limit: params.limit || 10
     };
 
-    console.debug('🧩 Paramètres envoyés à l’API:', finalParams);
-
     try {
       console.log('🚀 Requête GET /candidates/list-detailed en cours...');
-
       const response = await api.get('/candidates/list-detailed', {
         params: finalParams
       });
-
       console.log('✅ Réponse API reçue');
-      console.debug('📦 Status HTTP:', response.status);
-      console.debug('📦 Données reçues:', response.data);
-
       return response.data;
-
     } catch (error) {
-      console.error('❌ Erreur getDetailedList');
-
-      if (error.response) {
-        console.error('📛 Status:', error.response.status);
-        console.error('📛 Data:', error.response.data);
-      } else if (error.request) {
-        console.error('📡 Aucune réponse du serveur:', error.request);
-      } else {
-        console.error('⚠️ Erreur inconnue:', error.message);
-      }
-
+      console.error('❌ Erreur getDetailedList', error.response?.data || error.message);
       throw error;
+    }
+  },
+
+  /**
+   * NOUVEAU : Récupère les spécialités rattachées à une filière spécifique
+   */
+  getSpecialitesByFiliere: async (filiereId) => {
+    if (!filiereId) return [];
+    console.log(`📥 [candidatService] getSpecialitesByFiliere() pour filiereId: ${filiereId}`);
+    try {
+      const response = await api.get(`/candidates/specialites/${filiereId}`);
+      console.log('✅ Spécialités filtrées récupérées');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erreur getSpecialitesByFiliere', error.response?.data || error.message);
+      return [];
     }
   },
 
@@ -86,28 +84,12 @@ const candidatService = {
    */
   getFilieres: async () => {
     console.log('📥 [candidatService] getFilieres() appelé');
-
     try {
-      console.log('🚀 Requête GET /filieres');
-
       const response = await api.get('/filieres');
-
       console.log('✅ Filières récupérées');
-      console.debug('📦 Nombre de filières:', response.data?.length);
-      console.debug('📦 Données:', response.data);
-
       return response.data;
-
     } catch (error) {
-      console.error('❌ Erreur getFilieres');
-
-      if (error.response) {
-        console.error('📛 Status:', error.response.status);
-        console.error('📛 Data:', error.response.data);
-      } else {
-        console.error('⚠️ Erreur:', error.message);
-      }
-
+      console.error('❌ Erreur getFilieres', error.message);
       throw error;
     }
   },
@@ -117,28 +99,44 @@ const candidatService = {
    */
   getCentresExamen: async () => {
     console.log('📥 [candidatService] getCentresExamen() appelé');
-
     try {
-      console.log('🚀 Requête GET /centre-examen');
-
       const response = await api.get('/centre-examen');
-
       console.log('✅ Centres d’examen récupérés');
-      console.debug('📦 Nombre de centres:', response.data?.length);
-      console.debug('📦 Données:', response.data);
-
       return response.data;
-
     } catch (error) {
-      console.error('❌ Erreur getCentresExamen');
+      console.error('❌ Erreur getCentresExamen', error.message);
+      throw error;
+    }
+  },
 
-      if (error.response) {
-        console.error('📛 Status:', error.response.status);
-        console.error('📛 Data:', error.response.data);
-      } else {
-        console.error('⚠️ Erreur:', error.message);
-      }
+  /**
+   * EXPORTE LA LISTE DES CANDIDATS EN PDF
+   */
+  exportToPdf: async (filters = {}) => {
+    console.log('📥 [candidatService] exportToPdf() demandé au serveur');
+    try {
+      const response = await api.get('/candidates/export/pdf', {
+        params: filters,
+        responseType: 'blob', 
+      });
 
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      const fileName = `Liste_Candidats_${new Date().toISOString().split('T')[0]}.pdf`;
+      link.setAttribute('download', fileName);
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('✅ PDF téléchargé avec succès');
+    } catch (error) {
+      console.error('❌ Erreur lors de l’export PDF', error.message);
       throw error;
     }
   }

@@ -2,20 +2,16 @@ import api from './api.js';
 
 /**
  * Récupérer tous les concours avec pagination et recherche
- * @param {Object} params - { page, limit, search }
  */
 export const getConcours = async (params = {}) => {
   console.log('[getConcours] Début avec paramètres :', params);
   try {
-    // L'objet params est passé ici pour générer l'URL : /concours?page=1&limit=10...
     const response = await api.get('/concours', { params });
     console.log('[getConcours] Réponse API reçue :', response.data);
     return response.data;
   } catch (error) {
     console.error('[getConcours] Erreur :', error);
     throw error;
-  } finally {
-    console.log('[getConcours] Fin de l\'appel.');
   }
 };
 
@@ -23,7 +19,6 @@ export const getConcours = async (params = {}) => {
  * Récupérer un concours par ID
  */
 export const getConcoursById = async (id) => {
-  console.log(`[getConcoursById] ID demandé : ${id}`);
   try {
     const response = await api.get(`/concours/${id}`);
     return response.data;
@@ -35,6 +30,7 @@ export const getConcoursById = async (id) => {
 
 /**
  * Créer un concours
+ * @param {Object} data - { code, intitule, montant, anneeId, sessionId, pieceDossierIds }
  */
 export const createConcours = async (data) => {
   try {
@@ -68,6 +64,33 @@ export const deleteConcours = async (id) => {
     return response.data;
   } catch (error) {
     console.error('[deleteConcours] Erreur :', error);
+    throw error;
+  }
+};
+
+/**
+ * --- MÉTHODES UTILES POUR LE FORMULAIRE DE CRÉATION ---
+ */
+
+/**
+ * Récupérer les données nécessaires pour remplir le formulaire (Années, Sessions, Pièces)
+ * On utilise Promise.all pour charger les 3 listes en parallèle
+ */
+export const getFormDataRequired = async () => {
+  try {
+    const [annees, sessions, pieces] = await Promise.all([
+      api.get('/annee-academique'),
+      api.get('/session'),
+      api.get('/pieces-dossier')
+    ]);
+
+    return {
+      annees: annees.data.data || annees.data, // Gère si le backend renvoie {data: []} ou []
+      sessions: sessions.data.data || sessions.data,
+      pieces: pieces.data
+    };
+  } catch (error) {
+    console.error('[getFormDataRequired] Erreur de chargement des dépendances :', error);
     throw error;
   }
 };

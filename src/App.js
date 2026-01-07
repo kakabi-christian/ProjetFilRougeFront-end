@@ -38,6 +38,10 @@ import CandidatArchiveContent from './Contents/CandidatArchiveContent';
 import CandidateInfoContent from './Contents/CandidatInfoContent';
 import RoleContent from './Contents/RoleContent';
 import AdminContent from './Contents/AdminContent';
+import PieceDossierContent from './Contents/PieceDossierContent';
+import DossierAdmnContent from './Contents/DossierAdmnContent';
+import DossierCandidat from './Contents/DossierCandidat';
+import NotificationContent from './Contents/NotificationContent';
 function App() {
   return (
     <Router>
@@ -64,6 +68,8 @@ function App() {
           <Route path='profil' element={<CandidatProfileContent />} />
           <Route path='dossier' element={<CandidateInfoContent />} />
           <Route path='archives' element={<CandidatArchiveContent />} />
+          <Route path='dossier-upload' element={<DossierCandidat />} />
+          <Route path='notifications' element={<NotificationContent />} />
         </Route>
 
         {/* Dashboard admin avec sidebar */}
@@ -89,6 +95,9 @@ function App() {
           <Route path='archive' element={<ContentArchive />} />
           <Route path='roles' element={<RoleContent />} />
           <Route path='admin' element={<AdminContent />} />
+          <Route path='piece-dossier' element={<PieceDossierContent />} />
+          <Route path='dossier' element={<DossierAdmnContent />} />
+
           {/* Tu pourras ajouter d'autres routes enfants ici */}
         </Route>
       </Routes>
