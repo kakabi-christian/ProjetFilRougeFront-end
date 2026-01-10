@@ -99,6 +99,18 @@ export const getFileUrl = (path) => {
   
   return `${cleanBase}${cleanPath}`;
 };
+/**
+ * Récupérer le QR Code d'un candidat par son userId
+ */
+export const getCandidateQrCode = async (userId) => {
+  try {
+    const response = await api.get(`/dossiers/candidate/qrcode/${userId}`);
+    return response.data; // Retourne { qrCode: "data:image/png;base64,..." }
+  } catch (error) {
+    console.error(`[DossierService] Erreur récupération QR Code pour ${userId} :`, error);
+    throw error;
+  }
+};
 
 export default {
   uploadDossierFile,
@@ -107,5 +119,6 @@ export default {
   getAllDossiers,
   updateDossierStatus,
   DOSSIER_STATUS,
-  getFileUrl
+  getFileUrl,
+  getCandidateQrCode,
 };

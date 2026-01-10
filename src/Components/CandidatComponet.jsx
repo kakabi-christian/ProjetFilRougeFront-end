@@ -93,10 +93,14 @@ const CandidatComponent = () => {
       case 'VALIDATED': return <span className="badge bg-success">Validé</span>;
       case 'REJECTED': return <span className="badge bg-danger">Rejeté</span>;
       case 'PENDING': return <span className="badge bg-warning text-dark">En attente</span>;
-      default: return <span className="badge bg-secondary">Inconnu</span>;
+      default: return <span className="badge bg-secondary">en attente</span>;
     }
   };
-
+const handlePageChange = (newPage) => {
+  if (newPage >= 1 && newPage <= pagination.lastPage) {
+    setFilters(prev => ({ ...prev, page: newPage }));
+  }
+};
   const handleFilterChange = async (e) => {
     const { name, value } = e.target;
     if (name === 'filiereId') {
@@ -279,6 +283,41 @@ const CandidatComponent = () => {
           </table>
         </div>
       </div>
+      {/* AJOUTER CECI JUSTE APRÈS LA TABLE */}
+<div className="card-footer bg-white border-0 py-3">
+  <div className="d-flex justify-content-between align-items-center flex-wrap">
+    <div className="text-muted small">
+      Affichage de {candidates.length} sur {pagination.total} candidats
+    </div>
+    
+    <nav>
+      <ul className="pagination pagination-sm mb-0">
+        {/* Bouton Précédent */}
+        <li className={`page-item ${filters.page === 1 ? 'disabled' : ''}`}>
+          <button className="page-link" onClick={() => handlePageChange(filters.page - 1)}>
+            Précédent
+          </button>
+        </li>
+
+        {/* Génération dynamique des numéros de page */}
+        {[...Array(pagination.lastPage)].map((_, index) => (
+          <li key={index + 1} className={`page-item ${filters.page === index + 1 ? 'active' : ''}`}>
+            <button className="page-link shadow-none" onClick={() => handlePageChange(index + 1)}>
+              {index + 1}
+            </button>
+          </li>
+        ))}
+
+        {/* Bouton Suivant */}
+        <li className={`page-item ${filters.page === pagination.lastPage ? 'disabled' : ''}`}>
+          <button className="page-link" onClick={() => handlePageChange(filters.page + 1)}>
+            Suivant
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
     </div>
   );
 };

@@ -16,7 +16,7 @@ const ContentArchive = () => {
   
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : {};
-  const isAdmin = user.userType === 'ADMIN';
+  const isAdmin = user.userType === 'ADMIN'|| user.userType === 'SUPERADMIN';
 
   // Filtres et Pagination
   const [pagination, setPagination] = useState({ total: 0, page: 1, lastPage: 1 });

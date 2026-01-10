@@ -487,7 +487,7 @@ export default function StatistiqueContent() {
       {/* Paiements et Concours */}
       <div className="row g-4 mb-5">
         {/* Modes de paiement */}
-        <div className="col-lg-4">
+        <div className="col-lg-12">
           <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
             <div className="card-header border-0 py-4 px-4" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
               <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
@@ -509,8 +509,10 @@ export default function StatistiqueContent() {
           </div>
         </div>
 
-        {/* Concours */}
-        <div className="col-lg-8">
+       
+      </div>
+       {/* Concours */}
+        <div className="col-lg-12">
           <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
             <div className="card-header border-0 py-4 px-4" style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
               <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
@@ -573,8 +575,7 @@ export default function StatistiqueContent() {
               ))}
             </div>
           </div>
-        </div>
-      </div>
+        </div> <br />
 
       {/* Section inférieure */}
       <div className="row g-4 mb-5">
