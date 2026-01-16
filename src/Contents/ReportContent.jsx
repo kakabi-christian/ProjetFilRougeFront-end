@@ -96,19 +96,6 @@ export default function ReportContent() {
           <h2 className="fw-bold text-dark mb-1">Tableau de Bord Analytique</h2>
           <p className="text-muted"><i className="bi bi-calendar3 me-2"></i>Données consolidées au {new Date().toLocaleDateString()}</p>
         </div>
-        <div className="col-md-5">
-          <div className="card border-0 shadow-sm p-3 border-start border-primary border-5" style={{ borderRadius: '12px' }}>
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <small className="text-uppercase text-muted fw-bold" style={{ fontSize: '0.7rem' }}>Taux de Conversion Global</small>
-                <h3 className="mb-0 fw-bold text-primary">{stats.performance?.tauxConversion || '0%'}</h3>
-              </div>
-              <div className="bg-light-primary p-3 rounded-circle">
-                <i className="bi bi-graph-up-arrow text-primary fs-4"></i>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="row g-4">

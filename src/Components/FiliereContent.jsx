@@ -10,12 +10,11 @@ import departementService from '../services/departementService';
 const FiliereContent = () => {
   // --- ÉTATS ---
   const [filieres, setFilieres] = useState([]);
-  const [departements, setDepartements] = useState([]); // Pour le select du formulaire
+  const [departements, setDepartements] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Récupération du rôle
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.userType === 'ADMIN';
+  const isAdmin = user.userType === 'ADMIN'|| user.userType === 'SUPERADMIN';
 
   // États Modals
   const [showModal, setShowModal] = useState(false);
@@ -42,7 +41,7 @@ const FiliereContent = () => {
     try {
       const [filiereRes, deptRes] = await Promise.all([
         filiereService.getAll(filters),
-        departementService.getAll({ limit: 100 }) // Pour charger la liste des départements
+        departementService.getAll({ limit: 100 })
       ]);
       setFilieres(filiereRes.data || []);
       setPagination(filiereRes.pagination);
@@ -117,8 +116,8 @@ const FiliereContent = () => {
       {/* HEADER */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="fw-bold text-dark mb-1">Filières</h2>
-          <p className="text-muted small">{pagination.total} spécialités disponibles</p>
+          <h2 className="fw-bold text-dark mb-1">Filières Académiques</h2>
+          <p className="text-muted small">Gestion des spécialités et cursus ({pagination.total})</p>
         </div>
         {isAdmin && (
           <button className="btn btn-primary d-flex align-items-center shadow-sm px-4" onClick={() => openModal()}>
@@ -155,22 +154,28 @@ const FiliereContent = () => {
             <tbody>
               {loading ? (
                 <tr><td colSpan="4" className="text-center py-5"><BiLoaderAlt className="spinner-border text-primary" /></td></tr>
+              ) : filieres.length === 0 ? (
+                <tr><td colSpan="4" className="text-center py-5 text-muted">Aucune filière trouvée</td></tr>
               ) : (
                 filieres.map((f) => (
                   <tr key={f.id}>
                     <td className="px-4">
                       <div className="d-flex align-items-center">
-                        <div className="bg-light p-2 rounded me-3"><BiBookBookmark className="text-primary"/></div>
+                        <div className="bg-light p-2 rounded me-3 text-primary"><BiBookBookmark size={18}/></div>
                         <span className="fw-bold text-dark">{f.intitule}</span>
                       </div>
                     </td>
                     <td>
-                      <span className="badge bg-info bg-opacity-10 text-info">
-                        <BiBuildings className="me-1"/> {f.departement?.nomDep || 'N/A'}
-                      </span>
+                      {/* BACKGROUND BLEU/INFO RETIRÉ ICI */}
+                      <div className="text-dark d-flex align-items-center">
+                        <BiBuildings className="me-2 text-muted"/>
+                        {f.departement?.nomDep || 'N/A'}
+                      </div>
                     </td>
-                    <td className="text-muted small text-truncate" style={{maxWidth: '200px'}}>
-                      {f.description || 'Aucune description'}
+                    <td className="text-muted small">
+                      <div style={{maxWidth: '250px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                        {f.description || '---'}
+                      </div>
                     </td>
                     {isAdmin && (
                       <td className="text-end px-4">
@@ -199,7 +204,7 @@ const FiliereContent = () => {
         </div>
       </div>
 
-      {/* 🔹 MODAL FORMULAIRE (AJOUT/MODIF) */}
+      {/* 🔹 MODAL FORMULAIRE */}
       {showModal && (
         <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="modal-dialog modal-dialog-centered">

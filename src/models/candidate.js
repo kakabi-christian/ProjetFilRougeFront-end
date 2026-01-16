@@ -1,39 +1,40 @@
 // src/models/candidate.js
+import { Dossier } from './dossier.model'; // Importe le modèle qu'on a créé
 
-// Enum Sexe (doit correspondre exactement à Prisma)
 export const Sexe = {
   MASCULIN: 'MASCULIN',
   FEMININ: 'FEMININ',
 };
 
 /**
- * Modèle Candidat — STEP 2
- * Utilisé après la création du User (Step 1)
+ * Modèle Candidat complet
  */
 export class CandidateStep2 {
-  constructor({
-    userId = '',           // 🔹 Ajouter userId
-    dateNaissance = '',
-    lieuNaissance = '',
-    sexe = '',
-    nationalite = '',
-    ville = '',
-    nomPere = '',
-    telephonePere = '',
-    nomMere = '',
-    telephoneMere = '',
-    specialiteId = '',
-  } = {}) {
-    this.userId = userId;          // 🔹 Associer à l'utilisateur
-    this.dateNaissance = dateNaissance;
-    this.lieuNaissance = lieuNaissance;
-    this.sexe = sexe;
-    this.nationalite = nationalite;
-    this.ville = ville;
-    this.nomPere = nomPere;
-    this.telephonePere = telephonePere;
-    this.nomMere = nomMere;
-    this.telephoneMere = telephoneMere;
-    this.specialiteId = specialiteId;
+  constructor(data = {}) {
+    // Identifiants
+    this.id = data.id || ''; 
+    this.userId = data.userId || '';
+    this.matricule = data.matricule || '';
+
+    // Infos Personnelles
+    this.dateNaissance = data.dateNaissance || '';
+    this.lieuNaissance = data.lieuNaissance || '';
+    this.sexe = data.sexe || '';
+    this.nationalite = data.nationalite || '';
+    this.ville = data.ville || '';
+
+    // Famille
+    this.nomPere = data.nomPere || '';
+    this.telephonePere = data.telephonePere || '';
+    this.nomMere = data.nomMere || '';
+    this.telephoneMere = data.telephoneMere || '';
+
+    // 🔹 RELATION AVEC LE DOSSIER (Crucial pour le filtrage par statut)
+    // On instancie le dossier s'il existe dans les données reçues
+    this.dossier = data.dossier ? new Dossier(data.dossier) : null;
+
+    // Champs calculés pour l'affichage facile dans le tableau
+    this.specialiteId = data.specialiteId || '';
+    this.nomComplet = data.user ? `${data.user.nom} ${data.user.prenom}` : '';
   }
 }

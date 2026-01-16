@@ -5,7 +5,7 @@ import PaiementContent from '../Contents/PaiementContent'
 export default function Paiement() {
   return (
     <div><Header />
-      <PaiementContent />
+      <PaiementContent /> <br /> <br />
       <Footer />
 
     </div>

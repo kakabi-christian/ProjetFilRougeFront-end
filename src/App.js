@@ -24,8 +24,26 @@ import ExamenCentreComponent from './Components/ExamenCentreComponent';
 import CentreDepotContent from './Components/CentreDepotContent';
 import SpecialiteComponent from './Components/SpecialiteComponent';
 import ConcourComponent from './Components/ConcourComponent';
+import EpreuveContent from './Contents/EpreuveContent';
 import AnneContent from './Contents/AnneContent';
 import SessionsContent from './Contents/SessionsContent';
+import ArchiveContent from './Contents/ArchiveContent';
+import NiveauContent from './Contents/NiveauContent';
+import ContentArchive from './Contents/ContentArchive';
+import CandidatDashboard from './Pages/CandidatDashboard';
+import CandidatHomeContent from './Contents/CandidatHomeContent';
+import FeedBackContent from './Contents/FeedBackContent';
+import CandidatProfileContent from './Contents/CandidatProfileContent';
+import CandidatArchiveContent from './Contents/CandidatArchiveContent';
+import CandidateInfoContent from './Contents/CandidatInfoContent';
+import RoleContent from './Contents/RoleContent';
+import AdminContent from './Contents/AdminContent';
+import PieceDossierContent from './Contents/PieceDossierContent';
+import DossierAdmnContent from './Contents/DossierAdmnContent';
+import DossierCandidat from './Contents/DossierCandidat';
+import NotificationContent from './Contents/NotificationContent';
+import BatimentContent from './Contents/BatimentContent';
+import SalleContent from './Contents/SalleContent';
 function App() {
   return (
     <Router>
@@ -44,6 +62,18 @@ function App() {
         <Route path='/Step4Register' element={<Step4Register />} />
         <Route path='/CandidateInfo' element={<CandidateInfo />} />
 
+        {/* Dashboard candidat avec sidebar */}
+        <Route path='/candidat/*' element={<CandidatDashboard />}>
+          {/* Routes enfants du dashboard */}
+          <Route path='home' element={<CandidatHomeContent />} />
+          <Route path='feeback' element={<FeedBackContent />} />
+          <Route path='profil' element={<CandidatProfileContent />} />
+          <Route path='dossier' element={<CandidateInfoContent />} />
+          <Route path='archives' element={<CandidatArchiveContent />} />
+          <Route path='dossier-upload' element={<DossierCandidat />} />
+          <Route path='notifications' element={<NotificationContent />} />
+        </Route>
+
         {/* Dashboard admin avec sidebar */}
         <Route path='/admin/*' element={<AdminDashboard />}>
           {/* Routes enfants du dashboard */}
@@ -60,6 +90,18 @@ function App() {
           <Route path='concours' element={<ConcourComponent />} />
           <Route path='annees' element={<AnneContent />} />
           <Route path='sessions' element={<SessionsContent />} />
+          <Route path='epreuves' element={<EpreuveContent />} />
+          <Route path='epreuves' element={<EpreuveContent />} />
+          <Route path='niveaux' element={<NiveauContent />} />
+          <Route path='archives' element={<ArchiveContent />} />
+          <Route path='archive' element={<ContentArchive />} />
+          <Route path='roles' element={<RoleContent />} />
+          <Route path='admin' element={<AdminContent />} />
+          <Route path='piece-dossier' element={<PieceDossierContent />} />
+          <Route path='dossier' element={<DossierAdmnContent />} />
+          <Route path='batiment' element={<BatimentContent />} />
+          <Route path='salle' element={<SalleContent />} />
+
           {/* Tu pourras ajouter d'autres routes enfants ici */}
         </Route>
       </Routes>

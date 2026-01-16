@@ -12,7 +12,7 @@ const AnneeContent = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const isAdmin = user.userType === 'ADMIN';
+  const isAdmin = user.userType === 'ADMIN'|| user.userType === 'SUPERADMIN';
 
   // Pagination & Filtres
   const [pagination, setPagination] = useState({ 

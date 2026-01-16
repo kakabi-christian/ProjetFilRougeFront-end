@@ -518,32 +518,6 @@ export default function GrapheContent() {
                     </div>
                 </div>
 
-                {/* GRAPHIQUE 9: Candidats par Mention (Bar Chart Simple) */}
-                <div className="col-lg-6">
-                    <div className="card border-0 shadow-lg h-100" style={{ borderRadius: '20px' }}>
-                        <div className="card-header border-0 py-3 px-4" style={{ background: `linear-gradient(90deg, ${COLORS.PRIMARY} 0%, ${COLORS.INFO} 100%)`, borderTopLeftRadius: '20px', borderTopRightRadius: '20px' }}>
-                            <h5 className="mb-0 text-white fw-bold d-flex align-items-center">
-                                <i className="bi bi-trophy-fill me-2"></i> Répartition par Mention
-                            </h5>
-                        </div>
-                        <div className="card-body p-4">
-                            {mentionData.length > 0 ? (
-                                <ResponsiveContainer width="100%" height={300}>
-                                    <BarChart data={mentionData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff" />
-                                        <XAxis dataKey="name" stroke={COLORS.PRIMARY} />
-                                        <YAxis stroke={COLORS.PRIMARY} />
-                                        <Tooltip cursor={{ fill: 'rgba(102, 126, 234, 0.1)' }} />
-                                        <Bar dataKey="Nombre" fill={COLORS.PRIMARY} radius={[8, 8, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            ) : (
-                                <div className="alert alert-info">Aucune donnée de mention à afficher.</div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
               
             </div>
         </div>
