@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Star, Send, CheckCircle, Smartphone, X } from 'lucide-react';
+import { getUserProfile } from '../services/authService';
 
 const colorBlue = '#1E90FF';
 const colorGreen = '#25963F';
 
 export default function FeedBackContent() {
-  const user = { id: 123 }; // Simulation
-  const userId = user?.id;
+  // Récupération dynamique de l'utilisateur
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
+  const userId = user?.userId || user?.id;
 
   const [rating, setRating] = useState(5);
   const [hover, setHover] = useState(0);
@@ -14,23 +16,67 @@ export default function FeedBackContent() {
   const [loading, setLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
-  const handleSubmit = () => {
-    if (!userId) return;
+  // =========================================================
+  // 1. SYNC DU PROFIL (Sécurité pour Google Auth)
+  // =========================================================
+  useEffect(() => {
+    const syncProfile = async () => {
+      const token = localStorage.getItem('access_token');
+      if (token && !user?.userId) {
+        try {
+          console.log("📡 [FEEDBACK] Récupération du profil...");
+          const profile = await getUserProfile();
+          localStorage.setItem('user', JSON.stringify(profile));
+          setUser(profile);
+        } catch (err) {
+          console.error("❌ [FEEDBACK] Erreur profil:", err);
+        }
+      }
+    };
+    syncProfile();
+  }, [user?.userId]);
 
+  // =========================================================
+  // 2. LOGIQUE D'ENVOI
+  // =========================================================
+  const handleSubmit = async () => {
+    if (!userId) {
+      console.warn("⚠️ [FEEDBACK] Envoi impossible : ID utilisateur manquant");
+      return;
+    }
+
+    const feedbackData = {
+      userId: userId,
+      note: rating,
+      commentaire: comment,
+      dateEnvoi: new Date().toISOString()
+    };
+
+    console.log("🚀 [FEEDBACK] Tentative d'envoi:", feedbackData);
     setLoading(true);
     
-    // Simulation d'envoi
-    setTimeout(() => {
+    try {
+      // Simulation d'un appel API (À remplacer par ton service réel)
+      // await feedbackService.send(feedbackData);
+      
+      await new Promise(resolve => setTimeout(resolve, 1000)); 
+
+      console.log("✅ [FEEDBACK] Réponse serveur : Succès");
       setShowAlert(true);
       setRating(5);
       setComment('');
-      setLoading(false);
       
-      // Disparition après 3 secondes
+      // Disparition après 4 secondes
       setTimeout(() => {
         setShowAlert(false);
-      }, 3000);
-    }, 800);
+      }, 4000);
+
+    } catch (error) {
+      console.error("❌ [FEEDBACK] Erreur lors de l'envoi:", error);
+      alert("Une erreur est survenue lors de l'envoi de votre avis.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -58,8 +104,8 @@ export default function FeedBackContent() {
               <h4 className="fw-bold mb-2" style={{ color: '#2d3436' }}>
                 Notez votre expérience
               </h4>
-              <p className="text-muted mb-0">
-                Votre avis nous aide à améliorer l'application
+              <p className="text-muted mb-0 small">
+                Bonjour <span className="fw-bold text-primary">{user?.nom || 'Candidat'}</span>, votre avis nous aide à nous améliorer.
               </p>
             </div>
 
@@ -92,7 +138,7 @@ export default function FeedBackContent() {
                     </button>
                   ))}
                 </div>
-                <div className="text-muted small">
+                <div className="fw-bold" style={{ color: colorBlue, fontSize: '0.9rem' }}>
                   {rating === 1 && "😞 Très insatisfait"}
                   {rating === 2 && "😕 Insatisfait"}
                   {rating === 3 && "😐 Neutre"}
@@ -126,18 +172,15 @@ export default function FeedBackContent() {
               {/* BOUTON ENVOI */}
               <button
                 type="button"
-                disabled={loading}
+                disabled={loading || !userId}
                 onClick={handleSubmit}
                 className="btn w-100 py-3 fw-bold text-white rounded-3 shadow-lg d-flex align-items-center justify-content-center gap-2"
                 style={{ 
                   background: loading ? '#95a5a6' : `linear-gradient(135deg, ${colorBlue} 100%, ${colorGreen} 0%)`,
                   border: 'none',
                   fontSize: '1rem',
-                  transition: 'all 0.3s ease',
-                  transform: 'translateY(0)'
+                  transition: 'all 0.3s ease'
                 }}
-              
-               
               >
                 {loading ? (
                   <>
@@ -156,7 +199,7 @@ export default function FeedBackContent() {
             {/* FOOTER */}
             <div className="text-center mt-4">
               <small className="text-muted">
-                🔒 Vos données sont sécurisées et confidentielles
+                🔒 Vos données sont sécurisées et anonymes
               </small>
             </div>
           </div>
@@ -200,34 +243,16 @@ function CustomAlert({ show, onClose }) {
       <style>
         {`
           @keyframes slideDown {
-            from {
-              opacity: 0;
-              transform: translateY(-100%);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-100%); }
+            to { opacity: 1; transform: translateY(0); }
           }
-          
           @keyframes slideUp {
-            from {
-              opacity: 1;
-              transform: translateY(0);
-            }
-            to {
-              opacity: 0;
-              transform: translateY(-100%);
-            }
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-100%); }
           }
-          
           @keyframes pulse {
-            0%, 100% {
-              transform: scale(1);
-            }
-            50% {
-              transform: scale(1.1);
-            }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
           }
         `}
       </style>
@@ -244,36 +269,21 @@ function CustomAlert({ show, onClose }) {
         <div className="d-flex align-items-center gap-3 flex-grow-1">
           <div 
             className="bg-white rounded-circle d-flex align-items-center justify-content-center"
-            style={{ 
-              width: '50px', 
-              height: '50px',
-              animation: 'pulse 0.6s ease-out'
-            }}
+            style={{ width: '50px', height: '50px', animation: 'pulse 0.6s ease-out' }}
           >
             <CheckCircle size={30} color={colorGreen} />
           </div>
           <div className="text-white">
             <h6 className="fw-bold mb-1 fs-5">Merci pour votre avis !</h6>
             <p className="mb-0 small opacity-90">
-              Votre feedback a bien été enregistré
+              Votre feedback a bien été enregistré.
             </p>
           </div>
         </div>
-        
-        <button
-          onClick={onClose}
-          className="btn btn-link text-white p-0 ms-3"
-          style={{ 
-            textDecoration: 'none',
-            opacity: 0.8,
-            transition: 'opacity 0.2s ease'
-          }}
-          onMouseEnter={(e) => e.target.style.opacity = 1}
-          onMouseLeave={(e) => e.target.style.opacity = 0.8}
-        >
+        <button onClick={onClose} className="btn btn-link text-white p-0 ms-3" style={{ textDecoration: 'none' }}>
           <X size={24} />
         </button>
       </div>
     </div>
   );
-}   
+}

@@ -4,7 +4,20 @@ import api from './api.js';
  * 🔹 Inscription Candidat — STEP 1
  * Création du User après validation du reçu
  * @param {Object} userData
+ *//**
+ * 🔹 Récupérer le profil utilisateur (Utile pour Google Auth)
+ * Permet de récupérer nom, prénom, id, etc., à partir du token JWT
  */
+export const getUserProfile = async () => {
+  try {
+    const response = await api.get('/auth/profile');
+    console.log('[getUserProfile] Profil récupéré:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[getUserProfile] Erreur:', error);
+    throw error;
+  }
+};
 export const registerCandidateStep1 = async (userData) => {
   try {
     const response = await api.post(
@@ -49,6 +62,10 @@ export const registerCandidateStep2 = async (payload) => {
     if (error.response) console.error('Détails:', error.response.data);
     throw error;
   }
+};
+export const loginWithGoogle = () => {
+  const googleAuthUrl = `${api.defaults.baseURL}/auth/google`;
+  window.location.assign(googleAuthUrl);
 };
 export const registerCandidateStep3 = async (step3Data) => {
   try {

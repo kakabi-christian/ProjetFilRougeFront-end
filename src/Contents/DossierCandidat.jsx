@@ -11,16 +11,68 @@ import {
   DOSSIER_STATUS, 
   getFileUrl 
 } from '../services/DossierService';
+import { getUserProfile } from '../services/authService'; // Ajout du service d'auth
 
 const DossierCandidat = () => {
   const [dossier, setDossier] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploadingField, setUploadingField] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || '{}'));
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const candidateId = user.id;
+  // Extraction sécurisée de l'ID (compatible Google et Classique)
+  const candidateId = user?.userId || user?.id;
 
+  // =========================================================
+  // 1. SYNC DU PROFIL (Pour Google Auth)
+  // =========================================================
+  useEffect(() => {
+    const syncProfile = async () => {
+      // Si on a un token mais pas de userId complet dans le state
+      const token = localStorage.getItem('access_token');
+      if (token && !user?.userId) {
+        try {
+          console.log("📡 [DOSSIER] Récupération du profil utilisateur...");
+          const profile = await getUserProfile();
+          localStorage.setItem('user', JSON.stringify(profile));
+          setUser(profile);
+        } catch (err) {
+          console.error("❌ [DOSSIER] Erreur profil:", err);
+        }
+      }
+    };
+    syncProfile();
+  }, []);
+
+  // =========================================================
+  // 2. LOGIQUE DE CHARGEMENT DU DOSSIER
+  // =========================================================
+  const loadMyDossier = useCallback(async () => {
+    if (!candidateId) {
+        console.log("⏳ [DOSSIER] En attente de l'ID candidat...");
+        return;
+    }
+    
+    setLoading(true);
+    try {
+      console.log("🏗️ [DOSSIER] Chargement du dossier pour:", candidateId);
+      const response = await getDossierByCandidate(candidateId);
+      setDossier(response);
+    } catch (error) {
+      console.error("❌ [DOSSIER] Erreur chargement dossier:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [candidateId]);
+
+  useEffect(() => {
+    loadMyDossier();
+  }, [loadMyDossier]);
+
+  // =========================================================
+  // 3. UTILITAIRES ET HANDLERS
+  // =========================================================
+  
   const resolveUploadedPath = (code) => {
     if (!dossier || !code) return null;
     const searchCode = code.toLowerCase();
@@ -38,33 +90,12 @@ const DossierCandidat = () => {
     return foundKey ? dossier[foundKey] : null;
   };
 
-  const loadMyDossier = useCallback(async () => {
-    if (!candidateId) return;
-    setLoading(true);
-    try {
-      const response = await getDossierByCandidate(candidateId);
-      setDossier(response);
-    } catch (error) {
-      console.error("Erreur chargement:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [candidateId]);
-
-  useEffect(() => {
-    loadMyDossier();
-  }, [loadMyDossier]);
-
   const isDossierComplet = () => {
     if (!dossier || !dossier.piecesRequises) return false;
     return dossier.piecesRequises.every(piece => !!resolveUploadedPath(piece.code));
   };
 
-  // --- LOGIQUE DE VERROUILLAGE MISE À JOUR ---
-  // On ne bloque QUE si c'est en attente (PENDING) ou déjà validé (VALIDATED)
-  // Si c'est DRAFT ou REJECTED, le candidat PEUT modifier.
   const isLocked = dossier?.statut === DOSSIER_STATUS.VALIDATED || dossier?.statut === DOSSIER_STATUS.PENDING;
-  
   const isFullyValidated = dossier?.statut === DOSSIER_STATUS.VALIDATED;
   const isRejected = dossier?.statut === DOSSIER_STATUS.REJECTED;
 
@@ -93,7 +124,6 @@ const DossierCandidat = () => {
     
     setSubmitting(true);
     try {
-      // On envoie le dossier vers le statut PENDING pour l'admin
       await updateDossierStatus(candidateId, { statut: 'PENDING', commentaire: "Soumission définitive du candidat" });
       await loadMyDossier();
     } catch (error) {
@@ -103,9 +133,11 @@ const DossierCandidat = () => {
     }
   };
 
+  // Loader d'attente ID ou Dossier
   if (loading && !dossier) return (
-    <div className="d-flex justify-content-center align-items-center min-vh-100">
-        <BiLoaderAlt className="spinner-border text-primary" style={{width: '3rem', height: '3rem'}} />
+    <div className="d-flex flex-column justify-content-center align-items-center min-vh-100">
+        <BiLoaderAlt className="spinner-border text-primary mb-3" style={{width: '3rem', height: '3rem'}} />
+        <p className="text-muted fw-bold">Chargement de votre dossier...</p>
     </div>
   );
 
@@ -172,7 +204,6 @@ const DossierCandidat = () => {
             return (
               <div key={piece.id} className="col-md-6 col-lg-4">
                 <div className="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-                  
                   <div className={`d-flex align-items-center justify-content-center border-bottom ${isUploaded ? 'bg-white' : 'bg-light'}`} style={{height: '160px'}}>
                     {isUploaded ? (
                         isImage ? (
