@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   BiSearch, BiChevronLeft, BiPlus, BiEditAlt, 
   BiTrash, BiLoaderAlt, BiCheck, BiErrorCircle,
-  BiWallet, BiCalendar, BiLayer, BiFile
+  BiWallet, BiCalendar, BiLayer, BiFile, BiTimeFive
 } from 'react-icons/bi';
 import { 
   getConcours, 
@@ -15,7 +15,7 @@ import sessionService from '../services/sessionService';
 import pieceDossierService from '../services/PieceDossierService';
 
 const ConcoursComponent = () => {
-  // 1. D'ABORD : LES ÉTATS DE BASE (Pagination et Filtres en premier !)
+  // 1. ÉTATS DE BASE
   const [filters, setFilters] = useState({ search: '', page: 1, limit: 10 });
   const [pagination, setPagination] = useState({ total: 0, page: 1, lastPage: 1 });
   const [notification, setNotification] = useState({ show: false, title: '', message: '', type: 'error' });
@@ -40,12 +40,15 @@ const ConcoursComponent = () => {
     code: '', 
     intitule: '', 
     montant: '',
+    statut: 'PLANIFIE',
+    dateDebutInscription: '',
+    dateFinInscription: '',
     anneeId: '',
     sessionId: '',
     pieceDossierIds: [] 
   });
 
-  // 4. LES FONCTIONS (Maintenant elles peuvent accéder à 'filters')
+  // 4. LES FONCTIONS
   const showNotify = (title, message, type = 'error') => {
     setNotification({ show: true, title, message, type });
   };
@@ -110,13 +113,21 @@ const ConcoursComponent = () => {
         code: concours.code, 
         intitule: concours.intitule, 
         montant: concours.montant || '',
+        statut: concours.statut || 'PLANIFIE',
+        // On formate les dates pour l'input HTML (YYYY-MM-DD)
+        dateDebutInscription: concours.dateDebutInscription ? concours.dateDebutInscription.split('T')[0] : '',
+        dateFinInscription: concours.dateFinInscription ? concours.dateFinInscription.split('T')[0] : '',
         anneeId: concours.anneeId || '',
         sessionId: concours.sessionId || '',
         pieceDossierIds: concours.piecesDossier?.map(p => p.id) || []
       });
     } else {
       setIsEditing(false);
-      setFormData({ code: '', intitule: '', montant: '', anneeId: '', sessionId: '', pieceDossierIds: [] });
+      setFormData({ 
+        code: '', intitule: '', montant: '', statut: 'PLANIFIE', 
+        dateDebutInscription: '', dateFinInscription: '', 
+        anneeId: '', sessionId: '', pieceDossierIds: [] 
+      });
     }
     setShowModal(true);
   };
@@ -150,13 +161,24 @@ const ConcoursComponent = () => {
     }
   };
 
+  // Helper pour les badges de statut
+  const getStatusBadge = (statut) => {
+    const config = {
+      PLANIFIE: 'bg-secondary',
+      OUVERT: 'bg-success',
+      FERME: 'bg-danger',
+      TERMINE: 'bg-dark'
+    };
+    return <span className={`badge ${config[statut] || 'bg-secondary'} px-2 py-1`}>{statut}</span>;
+  };
+
   return (
     <div className="container-fluid p-4 bg-light min-vh-100">
       {/* HEADER */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
           <h2 className="fw-bold text-dark mb-1">Gestion des Concours</h2>
-          <p className="text-muted small">Configurez les types de concours et pièces requises</p>
+          <p className="text-muted small">Configurez les types de concours, périodes et pièces requises</p>
         </div>
         {isAdmin && (
           <button className="btn btn-primary d-flex align-items-center shadow-sm px-4" onClick={() => openModal()}>
@@ -171,7 +193,7 @@ const ConcoursComponent = () => {
           <span className="input-group-text bg-white border-end-0"><BiSearch /></span>
           <input 
             type="text" className="form-control border-start-0 shadow-none" 
-            placeholder="Rechercher..." 
+            placeholder="Rechercher par code ou intitulé..." 
             value={filters.search}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
           />
@@ -185,6 +207,7 @@ const ConcoursComponent = () => {
             <thead className="bg-primary text-white">
               <tr>
                 <th className="px-4 py-3">CODE / INTITULÉ</th>
+                <th className="py-3">STATUT / DATES</th>
                 <th className="py-3">FRAIS</th>
                 <th className="py-3">PIÈCES REQUISES</th>
                 <th className="py-3">ANNÉE / SESSION</th>
@@ -193,12 +216,19 @@ const ConcoursComponent = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="5" className="text-center py-5"><BiLoaderAlt className="spinner-border text-primary" /></td></tr>
+                <tr><td colSpan="6" className="text-center py-5"><BiLoaderAlt className="spinner-border text-primary" /></td></tr>
               ) : items.map((item) => (
                 <tr key={item.id}>
                   <td className="px-4">
                     <span className="fw-bold text-primary">{item.code}</span><br/>
                     <small className="text-dark fw-semibold">{item.intitule}</small>
+                  </td>
+                  <td>
+                    {getStatusBadge(item.statut)}<br/>
+                    <small className="text-muted"><BiTimeFive className="me-1"/> 
+                      {item.dateDebutInscription ? new Date(item.dateDebutInscription).toLocaleDateString() : 'N/A'} - 
+                      {item.dateFinInscription ? new Date(item.dateFinInscription).toLocaleDateString() : '...'}
+                    </small>
                   </td>
                   <td>
                     <BiWallet className="me-1 text-muted"/>
@@ -259,6 +289,26 @@ const ConcoursComponent = () => {
                       <label className="form-label small fw-bold">INTITULÉ</label>
                       <input type="text" className="form-control" required value={formData.intitule} onChange={(e) => setFormData({...formData, intitule: e.target.value})} />
                     </div>
+
+                    {/* NOUVEAUX CHAMPS : DATES ET STATUT */}
+                    <div className="col-md-4">
+                      <label className="form-label small fw-bold">DÉBUT INSCRIPTION</label>
+                      <input type="date" className="form-control" value={formData.dateDebutInscription} onChange={(e) => setFormData({...formData, dateDebutInscription: e.target.value})} />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label small fw-bold">FIN INSCRIPTION</label>
+                      <input type="date" className="form-control" value={formData.dateFinInscription} onChange={(e) => setFormData({...formData, dateFinInscription: e.target.value})} />
+                    </div>
+                    <div className="col-md-4">
+                      <label className="form-label small fw-bold">STATUT</label>
+                      <select className="form-select" value={formData.statut} onChange={(e) => setFormData({...formData, statut: e.target.value})}>
+                        <option value="PLANIFIE">PLANIFIÉ</option>
+                        <option value="OUVERT">OUVERT</option>
+                        <option value="FERME">FERMÉ</option>
+                        <option value="TERMINE">TERMINÉ</option>
+                      </select>
+                    </div>
+
                     <div className="col-md-6">
                       <label className="form-label small fw-bold">ANNÉE ACADÉMIQUE</label>
                       <select className="form-select" required value={formData.anneeId} onChange={(e) => setFormData({...formData, anneeId: e.target.value})}>
@@ -276,7 +326,7 @@ const ConcoursComponent = () => {
                     
                     <div className="col-12">
                       <label className="form-label small fw-bold text-primary">PIÈCES REQUISES</label>
-                      <div className="p-3 border rounded bg-light row mx-0">
+                      <div className="p-3 border rounded bg-light row mx-0" style={{maxHeight: '150px', overflowY: 'auto'}}>
                         {availablePieces.map(piece => (
                           <div key={piece.id} className="col-md-6 form-check">
                             <input 
@@ -314,11 +364,11 @@ const ConcoursComponent = () => {
       {notification.show && (
         <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1100 }}>
           <div className="modal-dialog modal-sm modal-dialog-centered">
-            <div className="modal-content text-center p-4">
+            <div className="modal-content text-center p-4 shadow-lg border-0">
               {notification.type === 'error' ? <BiErrorCircle className="text-danger mb-2" size={40}/> : <BiCheck className="text-success mb-2" size={40}/>}
-              <h6>{notification.title}</h6>
+              <h6 className="fw-bold">{notification.title}</h6>
               <p className="small text-muted">{notification.message}</p>
-              <button className="btn btn-sm btn-dark w-100" onClick={() => setNotification({ ...notification, show: false })}>Fermer</button>
+              <button className="btn btn-sm btn-dark w-100 rounded-pill" onClick={() => setNotification({ ...notification, show: false })}>Fermer</button>
             </div>
           </div>
         </div>
@@ -327,12 +377,13 @@ const ConcoursComponent = () => {
       {confirmDelete.show && (
         <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1100 }}>
           <div className="modal-dialog modal-sm modal-dialog-centered">
-            <div className="modal-content p-4 text-center">
+            <div className="modal-content p-4 text-center shadow-lg border-0">
               <BiTrash className="text-danger mb-2" size={40}/>
-              <h6>Supprimer ?</h6>
+              <h6 className="fw-bold">Supprimer ce concours ?</h6>
+              <p className="small text-muted">Cette action est irréversible.</p>
               <div className="d-flex gap-2 mt-3">
-                <button className="btn btn-sm btn-light border flex-grow-1" onClick={() => setConfirmDelete({ show: false, id: null })}>Non</button>
-                <button className="btn btn-sm btn-danger flex-grow-1" onClick={executeDelete}>Oui</button>
+                <button className="btn btn-sm btn-light border flex-grow-1 rounded-pill" onClick={() => setConfirmDelete({ show: false, id: null })}>Non</button>
+                <button className="btn btn-sm btn-danger flex-grow-1 rounded-pill" onClick={executeDelete}>Oui, Supprimer</button>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 // src/Contents/PaiementContent.jsx
 import React, { useState, useEffect } from 'react';
-import { getConcours } from '../services/concoursService';
+import { getActiveConcours } from '../services/concoursService';
 import { createPaiement } from '../services/paiementService';
 import { generatePDF } from '../services/pdfService';
 import LogoMTN from '../Assets/logo-mtn.jpg';
@@ -28,7 +28,7 @@ export default function PaiementContent() {
   const [pinCode, setPinCode] = useState('');
 
   useEffect(() => {
-    getConcours()
+    getActiveConcours()
       .then((response) => {
         const dataArray = response.data?.data || response.data || [];
         setConcours(Array.isArray(dataArray) ? dataArray : []);

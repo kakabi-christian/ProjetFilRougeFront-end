@@ -51,10 +51,6 @@ const DossierAdmnContent = () => {
     const search = code.toLowerCase().trim();
     const keys = Object.keys(dossier);
 
-    // LOG DE DÉBOGAGE
-    console.log(`--- Tentative de résolution pour le code: "${code}" ---`);
-    console.log("Clés disponibles dans l'objet dossier:", keys);
-
     const foundKey = keys.find(k => {
       const keyLower = k.toLowerCase();
       return (
@@ -63,52 +59,58 @@ const DossierAdmnContent = () => {
         `photo${keyLower}` === search
       );
     });
-
-    if (foundKey) {
-        console.log(`✅ MATCH TROUVÉ ! Clé: "${foundKey}", Valeur:`, dossier[foundKey]);
-    } else {
-        console.warn(`❌ AUCUN MATCH pour le code "${code}". Vérifie si le code du concours correspond aux colonnes de ta DB.`);
-    }
     
     return foundKey ? dossier[foundKey] : null;
   };
 
   // --- ACTIONS ---
   const handleOpenValidation = (dossier) => {
-    console.log("Dossier complet sélectionné:", dossier);
     setSelectedDossier(dossier);
     setAdminComment(dossier.commentaire || '');
     setShowModal(true);
   };
 
-// ... dans ton fichier DossierAdmnContent.jsx, modifie handleUpdateStatus :
-
   const handleUpdateStatus = async (newStatus) => {
-  // --- LOGIQUE DE VALIDATION OBLIGATOIRE ---
-  if (newStatus === DOSSIER_STATUS.REJECTED && !adminComment.trim()) {
-    setCommentError(true); // Active l'alerte visuelle sur le champ
-    alert("Action requise : Veuillez saisir obligatoirement un motif de refus pour informer le candidat des corrections à apporter.");
-    return;
-  }
+    // 1. Vérification si le dossier est déjà validé
+    if (selectedDossier.statut === DOSSIER_STATUS.VALIDATED && newStatus === DOSSIER_STATUS.VALIDATED) {
+      alert("Ce dossier est déjà validé. Vous ne pouvez pas effectuer cette action à nouveau.");
+      return;
+    }
 
-  setSubmitting(true);
-  try {
-    await updateDossierStatus(selectedDossier.candidateId, {
-      statut: newStatus,
-      commentaire: adminComment
-    });
-    
-    window.dispatchEvent(new Event("dossierStatusUpdated"));
+    // 2. Logique de validation obligatoire du commentaire pour rejet
+    if (newStatus === DOSSIER_STATUS.REJECTED && !adminComment.trim()) {
+      setCommentError(true);
+      alert("Action requise : Veuillez saisir obligatoirement un motif de refus.");
+      return;
+    }
 
-    setShowModal(false);
-    loadDossiers();
-    setCommentError(false); // Réinitialise l'erreur
-  } catch (error) {
-    alert("Erreur lors de la mise à jour du statut.");
-  } finally {
-    setSubmitting(false);
-  }
-};
+    // 3. Message de confirmation avant traitement
+    const confirmMessage = newStatus === DOSSIER_STATUS.VALIDATED 
+      ? `Voulez-vous vraiment CONFIRMER la validation du dossier de ${selectedDossier.candidate?.user?.nom} ?`
+      : `Voulez-vous vraiment REJETER le dossier de ${selectedDossier.candidate?.user?.nom} ?`;
+
+    if (!window.confirm(confirmMessage)) {
+      return; // Annule l'opération si l'admin clique sur "Annuler"
+    }
+
+    setSubmitting(true);
+    try {
+      await updateDossierStatus(selectedDossier.candidateId, {
+        statut: newStatus,
+        commentaire: adminComment
+      });
+      
+      window.dispatchEvent(new Event("dossierStatusUpdated"));
+
+      setShowModal(false);
+      loadDossiers();
+      setCommentError(false);
+    } catch (error) {
+      alert("Erreur lors de la mise à jour du statut.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -127,7 +129,6 @@ const DossierAdmnContent = () => {
         </div>
       </div>
 
-      {/* FILTRES */}
       <div className="card shadow-sm border-0 mb-4 p-3">
         <div className="row g-3">
           <div className="col-md-8">
@@ -147,7 +148,6 @@ const DossierAdmnContent = () => {
         </div>
       </div>
 
-      {/* TABLEAU */}
       <div className="card shadow-sm border-0">
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0">
@@ -202,7 +202,6 @@ const DossierAdmnContent = () => {
         </div>
       </div>
 
-      {/* MODAL D'EXAMEN DYNAMIQUE */}
       {showModal && selectedDossier && (
         <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1050 }}>
           <div className="modal-dialog modal-xl modal-dialog-centered">
@@ -225,7 +224,6 @@ const DossierAdmnContent = () => {
                     <div className="row g-3">
                       {selectedDossier.piecesRequises?.map((piece, idx) => {
                         const fileUrl = resolveFileUrl(selectedDossier, piece.code);
-                        
                         return (
                           <div key={idx} className="col-md-6">
                             <div className="card border-0 shadow-sm h-100">
@@ -263,22 +261,22 @@ const DossierAdmnContent = () => {
 
                   <div className="col-md-4 p-4 bg-white border-start">
                     <h6 className="fw-bold mb-3 text-uppercase small text-muted">Décision finale</h6>
-                 <div className="mb-4">
-  <label className={`form-label small fw-bold ${commentError ? 'text-danger' : ''}`}>
-    Commentaire / Motif du refus {commentError && "(Obligatoire pour un rejet)"}
-  </label>
-  <textarea 
-    className={`form-control ${commentError ? 'is-invalid border-danger' : ''}`} 
-    rows="10" 
-    placeholder="Exemple : Votre acte de naissance est illisible, merci de le rescanner."
-    value={adminComment}
-    onChange={(e) => {
-      setAdminComment(e.target.value);
-      if (e.target.value.trim()) setCommentError(false); // Enlève l'erreur quand on écrit
-    }}
-  ></textarea>
-  {commentError && <div className="text-danger small mt-1">Veuillez préciser la raison du rejet pour aider le candidat.</div>}
-</div>
+                    <div className="mb-4">
+                      <label className={`form-label small fw-bold ${commentError ? 'text-danger' : ''}`}>
+                        Commentaire / Motif du refus {commentError && "(Obligatoire pour un rejet)"}
+                      </label>
+                      <textarea 
+                        className={`form-control ${commentError ? 'is-invalid border-danger' : ''}`} 
+                        rows="10" 
+                        placeholder="Exemple : Votre acte de naissance est illisible..."
+                        value={adminComment}
+                        onChange={(e) => {
+                          setAdminComment(e.target.value);
+                          if (e.target.value.trim()) setCommentError(false);
+                        }}
+                      ></textarea>
+                      {commentError && <div className="text-danger small mt-1">Veuillez préciser la raison du rejet.</div>}
+                    </div>
 
                     <div className="d-grid gap-2">
                       <button 

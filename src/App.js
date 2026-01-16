@@ -42,6 +42,8 @@ import PieceDossierContent from './Contents/PieceDossierContent';
 import DossierAdmnContent from './Contents/DossierAdmnContent';
 import DossierCandidat from './Contents/DossierCandidat';
 import NotificationContent from './Contents/NotificationContent';
+import BatimentContent from './Contents/BatimentContent';
+import SalleContent from './Contents/SalleContent';
 function App() {
   return (
     <Router>
@@ -97,6 +99,8 @@ function App() {
           <Route path='admin' element={<AdminContent />} />
           <Route path='piece-dossier' element={<PieceDossierContent />} />
           <Route path='dossier' element={<DossierAdmnContent />} />
+          <Route path='batiment' element={<BatimentContent />} />
+          <Route path='salle' element={<SalleContent />} />
 
           {/* Tu pourras ajouter d'autres routes enfants ici */}
         </Route>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   BiCloudUpload, BiCheckCircle, BiSend,
   BiTimeFive, BiLoaderAlt, 
-  BiLockAlt, BiRefresh, BiFile, BiShowAlt
+  BiLockAlt, BiRefresh, BiFile, BiShowAlt, BiXCircle
 } from 'react-icons/bi';
 import { 
   getDossierByCandidate, 
@@ -60,11 +60,13 @@ const DossierCandidat = () => {
     return dossier.piecesRequises.every(piece => !!resolveUploadedPath(piece.code));
   };
 
-  // VERROUILLAGE : Bloque les modifs si validé ou en attente
+  // --- LOGIQUE DE VERROUILLAGE MISE À JOUR ---
+  // On ne bloque QUE si c'est en attente (PENDING) ou déjà validé (VALIDATED)
+  // Si c'est DRAFT ou REJECTED, le candidat PEUT modifier.
   const isLocked = dossier?.statut === DOSSIER_STATUS.VALIDATED || dossier?.statut === DOSSIER_STATUS.PENDING;
   
-  // VERROUILLAGE STRICT : Bloque même le bouton de soumission si validé
   const isFullyValidated = dossier?.statut === DOSSIER_STATUS.VALIDATED;
+  const isRejected = dossier?.statut === DOSSIER_STATUS.REJECTED;
 
   const handleFileUpload = async (e, fieldCode) => {
     if (isLocked) return;
@@ -85,13 +87,14 @@ const DossierCandidat = () => {
 
   const handleFinalSubmit = async () => {
     if (isLocked) return;
-    if (!isDossierComplet()) return alert("Dossier incomplet.");
+    if (!isDossierComplet()) return alert("Dossier incomplet. Veuillez uploader toutes les pièces.");
     
-    if (!window.confirm("Confirmer la soumission ? Vous ne pourrez plus modifier vos fichiers après cette action.")) return;
+    if (!window.confirm("Confirmer la soumission ? Votre dossier sera envoyé pour vérification et vous ne pourrez plus le modifier.")) return;
     
     setSubmitting(true);
     try {
-      await updateDossierStatus(candidateId, { statut: 'PENDING', commentaire: "Soumission candidat" });
+      // On envoie le dossier vers le statut PENDING pour l'admin
+      await updateDossierStatus(candidateId, { statut: 'PENDING', commentaire: "Soumission définitive du candidat" });
       await loadMyDossier();
     } catch (error) {
       alert("Erreur lors de la soumission.");
@@ -129,22 +132,27 @@ const DossierCandidat = () => {
                 className={`btn btn-lg rounded-pill px-4 shadow-sm fw-bold ${isDossierComplet() && !isLocked ? 'btn-success' : 'btn-secondary opacity-50'}`}
               >
                 {submitting ? <BiLoaderAlt className="spinner-border spinner-border-sm me-2"/> : <BiSend className="me-2"/>}
-                {dossier?.statut === DOSSIER_STATUS.PENDING ? "Dossier en attente" : "Soumettre le dossier"}
+                {dossier?.statut === DOSSIER_STATUS.PENDING ? "Dossier en cours d'examen" : "Soumettre le dossier"}
               </button>
             )}
           </div>
         </div>
 
-        {/* Barre de Statut simple */}
-        <div className={`alert ${isLocked ? 'bg-white border-primary' : 'bg-white'} shadow-sm border-2 rounded-4 p-3 mb-4 d-flex align-items-center`}>
+        {/* Barre de Statut dynamique */}
+        <div className={`alert bg-white shadow-sm border-2 rounded-4 p-3 mb-4 d-flex align-items-center ${isRejected ? 'border-danger' : isFullyValidated ? 'border-success' : 'border-primary'}`}>
             <div className="me-3">
-                {isFullyValidated ? <BiCheckCircle className="text-success" size={35}/> : <BiTimeFive className="text-warning" size={35}/>}
+                {isFullyValidated && <BiCheckCircle className="text-success" size={35}/>}
+                {isRejected && <BiXCircle className="text-danger" size={35}/>}
+                {!isFullyValidated && !isRejected && <BiTimeFive className="text-warning" size={35}/>}
             </div>
             <div className="flex-grow-1">
                 <span className="fw-bold d-block text-uppercase small text-muted">Statut de mon dossier</span>
-                <span className={`h5 mb-0 fw-bold ${isFullyValidated ? 'text-success' : 'text-dark'}`}>
+                <span className={`h5 mb-0 fw-bold ${isFullyValidated ? 'text-success' : isRejected ? 'text-danger' : 'text-dark'}`}>
                   {dossier?.statut || 'BROUILLON'}
                 </span>
+                {isRejected && dossier?.commentaire && (
+                  <div className="text-danger small mt-1 fw-bold">Motif du rejet : {dossier.commentaire}</div>
+                )}
             </div>
             {isLocked && (
               <div className="text-primary fw-bold small">

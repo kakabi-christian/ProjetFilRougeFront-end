@@ -1,9 +1,41 @@
 import api from './api';
 
 /**
- * Service pour gérer les opérations liées aux candidats
+ * Service pour gérer les opérations liées aux candidats et à la logistique
  */
 const candidatService = {
+  
+  /**
+   * RÉCUPÈRE TOUS LES CONCOURS
+   */
+  getConcours: async () => {
+    console.log('📥 [candidatService] getConcours() appelé');
+    try {
+      const response = await api.get('/concours/list');
+      console.log('✅ Concours récupérés');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erreur getConcours', error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * RÉCUPÈRE LES SESSIONS D'UN CONCOURS PRÉCIS
+   */
+  getSessionsByConcours: async (concoursId) => {
+    if (!concoursId) return [];
+    console.log(`📥 [candidatService] getSessionsByConcours() pour concoursId: ${concoursId}`);
+    try {
+      const response = await api.get(`/concours/${concoursId}/sessions`);
+      console.log('✅ Sessions récupérées');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erreur getSessionsByConcours', error.message);
+      return [];
+    }
+  },
+
   /**
    * RÉCUPÈRE L'INTITULÉ DU CONCOURS (Dashboard)
    */
@@ -40,13 +72,14 @@ const candidatService = {
   getDetailedList: async (params = {}) => {
     console.log('📥 [candidatService] getDetailedList() appelé');
 
-    // On inclut les nouveaux filtres pour le backend
     const finalParams = {
       search: params.search || undefined,
+      concoursId: params.concoursId || undefined, // AJOUTÉ
+      sessionId: params.sessionId || undefined,   // AJOUTÉ
       filiereId: params.filiereId || undefined,
       specialiteId: params.specialiteId || undefined, 
-      centreExamenId: params.centreExamenId || undefined, // Ajouté
-      centreDepotId: params.centreDepotId || undefined,   // Ajouté
+      centreExamenId: params.centreExamenId || undefined, 
+      centreDepotId: params.centreDepotId || undefined,   
       sexe: params.sexe || undefined,
       statut: params.statut || undefined, 
       page: params.page || 1,
@@ -62,6 +95,24 @@ const candidatService = {
       return response.data;
     } catch (error) {
       console.error('❌ Erreur getDetailedList', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * ======================================================
+   * ALGORITHME DE DISPATCHING (AFFECTATION SALLES)
+   * ======================================================
+   */
+  runDispatching: async (data) => {
+    console.log('🚀 [candidatService] runDispatching() demandé...');
+    // data contient: { concoursId, sessionId, centreExamenId, specialiteId }
+    try {
+      const response = await api.post('/dispatch/run', data);
+      console.log('✅ Dispatching réussi:', response.data.stats);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erreur runDispatching', error.response?.data || error.message);
       throw error;
     }
   },
@@ -113,12 +164,12 @@ const candidatService = {
   },
 
   /**
-   * NOUVEAU : Récupère les centres de dépôt
+   * Récupère les centres de dépôt
    */
   getCentresDepot: async () => {
     console.log('📥 [candidatService] getCentresDepot() appelé');
     try {
-      const response = await api.get('/centre-depot'); // Assure-toi que cette route existe au backend
+      const response = await api.get('/centre-depot'); 
       console.log('✅ Centres de dépôt récupérés');
       return response.data;
     } catch (error) {
