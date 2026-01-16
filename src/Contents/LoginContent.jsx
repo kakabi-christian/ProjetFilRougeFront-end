@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser, loginWithGoogle } from "../services/authService"; // Ajout de loginWithGoogle
+// Ajout de loginWithGithub dans les imports
+import { loginUser, loginWithGoogle, loginWithGithub } from "../services/authService"; 
 
 export default function LoginContent() {
   const [codeAdmin, setCodeAdmin] = useState("");
@@ -13,10 +14,9 @@ export default function LoginContent() {
 
   const navigate = useNavigate();
 
-  // Fonction pour déclencher Google Auth
-  const handleGoogleLogin = () => {
-    loginWithGoogle();
-  };
+  // Déclencheurs OAuth
+  const handleGoogleLogin = () => loginWithGoogle();
+  const handleGithubLogin = () => loginWithGithub(); // 👈 Nouvelle fonction
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -98,32 +98,43 @@ export default function LoginContent() {
 
         {infoMessage && (
           <div className="alert alert-info text-center mb-3" role="alert">
-            <div
-              className="spinner-border spinner-border-sm me-2"
-              role="status"
-            ></div>
+            <div className="spinner-border spinner-border-sm me-2" role="status"></div>
             {infoMessage}
           </div>
         )}
 
-        {/* --- BOUTON GOOGLE (Uniquement pour les candidats) --- */}
+        {/* --- BOUTONS SOCIAUX (Uniquement pour les candidats) --- */}
         {userType === "CANDIDATE" && (
           <>
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center mb-3 py-2 fw-bold"
-              disabled={loading}
-            >
-              <img
-                src="https://developers.google.com/identity/images/g-logo.png"
-                alt="Google"
-                width="20"
-                height="20"
-                className="me-2"
-              />
-              Continuer avec Google
-            </button>
+            <div className="d-grid gap-2 mb-3">
+              {/* Bouton Google */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="btn btn-outline-dark d-flex align-items-center justify-content-center py-2 fw-bold"
+                disabled={loading}
+              >
+                <img
+                  src="https://developers.google.com/identity/images/g-logo.png"
+                  alt="Google"
+                  width="20"
+                  height="20"
+                  className="me-2"
+                />
+                Google
+              </button>
+
+              {/* Bouton GitHub */}
+              <button
+                type="button"
+                onClick={handleGithubLogin}
+                className="btn btn-dark d-flex align-items-center justify-content-center py-2 fw-bold"
+                disabled={loading}
+              >
+                <i className="bi bi-github me-2 fs-5"></i>
+                GitHub
+              </button>
+            </div>
 
             <div className="d-flex align-items-center my-3">
               <hr className="flex-grow-1" />
@@ -167,49 +178,36 @@ export default function LoginContent() {
                   disabled={loading}
                 />
               </div>
-              <div className="mb-4">
-                <label className="form-label fw-medium">Mot de passe</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  disabled={loading}
-                />
-              </div>
             </>
           )}
 
           {userType === "CANDIDATE" && (
-            <>
-              <div className="mb-3">
-                <label className="form-label fw-medium">Numéro de reçu</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={numeroRecu}
-                  onChange={(e) => setNumeroRecu(e.target.value)}
-                  placeholder="Numéro de reçu"
-                  required
-                  disabled={loading}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="form-label fw-medium">Mot de passe</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Votre mot de passe"
-                  required
-                  disabled={loading}
-                />
-              </div>
-            </>
+            <div className="mb-3">
+              <label className="form-label fw-medium">Numéro de reçu</label>
+              <input
+                type="text"
+                className="form-control"
+                value={numeroRecu}
+                onChange={(e) => setNumeroRecu(e.target.value)}
+                placeholder="Numéro de reçu"
+                required
+                disabled={loading}
+              />
+            </div>
           )}
+
+          <div className="mb-4">
+            <label className="form-label fw-medium">Mot de passe</label>
+            <input
+              type="password"
+              className="form-control"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              disabled={loading}
+            />
+          </div>
 
           <button
             type="submit"
@@ -218,11 +216,8 @@ export default function LoginContent() {
           >
             {loading ? (
               <>
-                <span
-                  className="spinner-border spinner-border-sm me-2"
-                  role="status"
-                ></span>
-                Traitement...
+                <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                Chargement...
               </>
             ) : (
               "Se connecter"

@@ -44,6 +44,7 @@ import DossierCandidat from './Contents/DossierCandidat';
 import NotificationContent from './Contents/NotificationContent';
 import BatimentContent from './Contents/BatimentContent';
 import SalleContent from './Contents/SalleContent';
+import ChatComponent from './Components/ChatComponent';
 function App() {
   return (
     <Router>
@@ -61,6 +62,7 @@ function App() {
         <Route path='/Step3Register' element={<Step3Register />} />
         <Route path='/Step4Register' element={<Step4Register />} />
         <Route path='/CandidateInfo' element={<CandidateInfo />} />
+
 
         {/* Dashboard candidat avec sidebar */}
         <Route path='/candidat/*' element={<CandidatDashboard />}>
@@ -105,6 +107,8 @@ function App() {
           {/* Tu pourras ajouter d'autres routes enfants ici */}
         </Route>
       </Routes>
+        <ChatComponent />
+
     </Router>
   );
 }

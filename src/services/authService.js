@@ -67,6 +67,14 @@ export const loginWithGoogle = () => {
   const googleAuthUrl = `${api.defaults.baseURL}/auth/google`;
   window.location.assign(googleAuthUrl);
 };
+/**
+ * 🔹 Authentification GitHub
+ * Redirige l'utilisateur vers le backend pour initier le flux OAuth GitHub
+ */
+export const loginWithGithub = () => {
+  const githubAuthUrl = `${api.defaults.baseURL}/auth/github`;
+  window.location.assign(githubAuthUrl);
+};
 export const registerCandidateStep3 = async (step3Data) => {
   try {
     const candidateId = localStorage.getItem('candidateId');
