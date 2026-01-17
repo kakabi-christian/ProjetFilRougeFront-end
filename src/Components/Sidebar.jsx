@@ -454,6 +454,18 @@ export default function Sidebar() {
                 </div>
               </NavLink>
             </div>
+            <div className="mt-4 pt-3 border-top">
+              <NavLink
+                to="/admin/retrait"
+                className="nav-link"
+                style={linkStyle}
+              >
+                <div className="d-flex align-items-center">
+                  <BiUserCircle size={20} className="me-3 text-secondary" />
+                  <span className="text-secondary">Retrait</span>
+                </div>
+              </NavLink>
+            </div>
           </ul>
         </div>
 

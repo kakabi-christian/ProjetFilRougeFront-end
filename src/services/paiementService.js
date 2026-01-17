@@ -152,3 +152,28 @@ export const getPaiementInfoByRecu = async (numeroRecu) => {
     throw error;
   }
 };
+/**
+ * 🏧 RETIRER L'ARGENT (ADMIN UNIQUEMENT)
+ * Transfère les fonds de Campay vers le compte Admin configuré.
+ * Demande le mot de passe de l'admin pour valider l'action.
+ * * @param {number} amount - Le montant à retirer
+ * @param {string} passwordConfirm - Le mot de passe de l'admin connecté
+ */
+export const withdrawToAdmin = async (amount, passwordConfirm) => {
+  console.log(`[withdrawToAdmin] Tentative de retrait de ${amount} XAF...`);
+
+  try {
+    const response = await api.post('/campay/withdraw-admin', {
+      amount,
+      passwordConfirm,
+    });
+
+    console.log('[withdrawToAdmin] Retrait réussi :', response.data);
+    return response.data; // { success: true, data: { reference, ... } }
+  } catch (error) {
+    console.error('[withdrawToAdmin] Erreur lors du retrait :', error.response?.data || error.message);
+    
+    // On propage l'erreur pour que le composant UI puisse afficher un message (ex: "Mot de passe incorrect")
+    throw error;
+  }
+};

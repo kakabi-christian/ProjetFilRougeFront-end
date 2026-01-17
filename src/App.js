@@ -46,6 +46,7 @@ import BatimentContent from './Contents/BatimentContent';
 import SalleContent from './Contents/SalleContent';
 import ChatComponent from './Components/ChatComponent';
 import MessageContent from './Components/MessageContent';
+import RetraitComponent from './Components/RetraitComponent';
 function App() {
   return (
     <Router>
@@ -105,6 +106,7 @@ function App() {
           <Route path='batiment' element={<BatimentContent />} />
           <Route path='salle' element={<SalleContent />} />
           <Route path='message' element={<MessageContent />} />
+          <Route path='retrait' element={<RetraitComponent />} />
 
           {/* Tu pourras ajouter d'autres routes enfants ici */}
         </Route>
