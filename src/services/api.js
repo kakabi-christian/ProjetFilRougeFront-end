@@ -1,33 +1,44 @@
-  // src/services/api.js
-  import axios from 'axios';
+// src/services/api.js
+import axios from 'axios';
 
-  const api = axios.create({
-    baseURL: 'http://localhost:3000',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+const api = axios.create({
+  baseURL: 'http://localhost:3000',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-  // INTERCEPTOR : Ajoute automatiquement le token à chaque appel
-  api.interceptors.request.use(
-    (config) => {
-      // On récupère le token stocké lors du login
-      // Vérifiez bien si vous l'avez nommé 'access_token' ou 'token' lors du stockage
-      const token = localStorage.getItem('access_token'); 
+// Liste des routes publiques qui ne nécessitent pas de token (ex: paiement, liste concours)
+const PUBLIC_ROUTES = [
+  '/paiement',
+  '/paiement/check-status',
+  '/concours'
+];
 
-      if (token) {
-        // On l'ajoute dans le header Authorization
-        config.headers.Authorization = `Bearer ${token}`;
-        console.log(`[API] Token injecté pour: ${config.url}`);
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access_token');
+    
+    // Vérifier si la route actuelle est publique
+    const isPublicRoute = PUBLIC_ROUTES.some(route => config.url.includes(route));
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log(`[API] Token injecté pour: ${config.url}`);
+    } else {
+      // On ne log un warning que si la route est censée être protégée
+      if (!isPublicRoute) {
+        console.warn(`[API] Requête vers une route protégée sans token : ${config.url}`);
       } else {
-        console.warn(`[API] Aucun token trouvé pour: ${config.url}`);
+        console.log(`[API] Requête publique (sans token) : ${config.url}`);
       }
+    }
 
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    } 
-  );
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
-  export default api;
+export default api;

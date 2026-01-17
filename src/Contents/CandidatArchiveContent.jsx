@@ -9,6 +9,7 @@ import {
   BiArchive
 } from 'react-icons/bi';
 import { getMyArchivesBySpeciality, getAnnees } from '../services/archiveService';
+import api from '../services/api';
 
 const API_BASE_URL = 'http://localhost:3000';
 
