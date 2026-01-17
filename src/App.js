@@ -47,6 +47,7 @@ import SalleContent from './Contents/SalleContent';
 import ChatComponent from './Components/ChatComponent';
 import MessageContent from './Components/MessageContent';
 import RetraitComponent from './Components/RetraitComponent';
+import Sidebar from './Components/Sidebar';
 function App() {
   return (
     <Router>

@@ -163,7 +163,35 @@ const ChatService = {
       console.error("Erreur lors de la récupération des contacts:", error);
       throw error;
     }
-  }
+  },
+  /**
+   * 🔹 Récupérer le nombre total de messages non lus (pour le badge Sidebar)
+   * Route: GET /chat/unread-count
+   */
+  getUnreadMessagesCount: async () => {
+    try {
+      const response = await api.get('/chat/unread-count');
+      return response.data.unreadCount; // Retourne directement le nombre (ex: 5)
+    } catch (error) {
+      console.error("Erreur lors de la récupération du compteur de messages non lus:", error);
+      return 0; // Retourne 0 en cas d'erreur pour ne pas bloquer l'affichage
+    }
+  },
+  /**
+   * 🔹 NOUVEAU : Récupérer le détail des messages non lus par conversation/admin
+   * Utile pour afficher : "Angela (12)", "Frédéric (8)"
+   * Route: GET /chat/unread-details
+   */
+  getUnreadMessagesDetails: async () => {
+    try {
+      const response = await api.get('/chat/unread-details');
+      return response.data; // Retourne [{ conversationId, count, senderName }]
+    } catch (error) {
+      console.error("Erreur lors de la récupération du détail des messages non lus:", error);
+      return [];
+    }
+  },
 };
+
 
 export default ChatService;

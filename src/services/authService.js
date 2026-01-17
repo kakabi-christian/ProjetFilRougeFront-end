@@ -1,5 +1,30 @@
 import api from './api.js';
 
+
+/**
+ * 🔹 Changer le mot de passe de l'utilisateur connecté
+ * @param {string} oldPassword - L'ancien mot de passe
+ * @param {string} newPassword - Le nouveau mot de passe
+ */
+export const changePassword = async (oldPassword, newPassword) => {
+  try {
+    const response = await api.post('/auth/change-password', {
+      oldPassword,
+      newPassword,
+    });
+
+    console.log('[changePassword] Succès:', response.data);
+    return response.data; // { message: "Votre mot de passe a été modifié avec succès." }
+  } catch (error) {
+    console.error('[changePassword] Erreur:', error);
+    if (error.response) {
+      console.error('Détails de l’erreur:', error.response.data);
+      // On propage l'erreur exacte du backend (ex: "L'ancien mot de passe est incorrect")
+      throw error.response.data; 
+    }
+    throw error;
+  }
+};
 /**
  * 🔹 Inscription Candidat — STEP 1
  * Création du User après validation du reçu
@@ -223,5 +248,6 @@ export const getCandidateInfo = async (candidateId) => {
     }
     throw error;
   }
+  
 };
 
