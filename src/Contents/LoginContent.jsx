@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// Ajout de loginWithGithub dans les imports
 import { loginUser, loginWithGoogle, loginWithGithub } from "../services/authService"; 
 
 export default function LoginContent() {
@@ -14,9 +13,8 @@ export default function LoginContent() {
 
   const navigate = useNavigate();
 
-  // Déclencheurs OAuth
   const handleGoogleLogin = () => loginWithGoogle();
-  const handleGithubLogin = () => loginWithGithub(); // 👈 Nouvelle fonction
+  const handleGithubLogin = () => loginWithGithub();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -36,9 +34,21 @@ export default function LoginContent() {
       const data = await loginUser(payload);
 
       if (data.access_token) {
+        // 1. Stockage du Token
         localStorage.setItem("access_token", data.access_token);
+        
+        // 2. Stockage des infos utilisateurs générales
         localStorage.setItem("user", JSON.stringify(data.user));
 
+        // 🎯 LOGIQUE CRITIQUE POUR LE CHAT (ADMIN)
+        // On vérifie si c'est un admin et on récupère l'ID de la table Admin
+        if (data.user?.admin) {
+          const adminId = data.user.admin.id;
+          localStorage.setItem("adminId", adminId);
+          console.log("ID Admin enregistré pour le chat:", adminId);
+        }
+
+        // 🎯 LOGIQUE POUR LE CANDIDAT
         if (data.user?.candidateId) {
           localStorage.setItem("candidateId", data.user.candidateId);
         }
@@ -70,7 +80,7 @@ export default function LoginContent() {
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Erreur Login:", err);
       setError(err.message || "Identifiants invalides ou accès refusé.");
       setLoading(false);
     }
@@ -103,11 +113,9 @@ export default function LoginContent() {
           </div>
         )}
 
-        {/* --- BOUTONS SOCIAUX (Uniquement pour les candidats) --- */}
         {userType === "CANDIDATE" && (
           <>
             <div className="d-grid gap-2 mb-3">
-              {/* Bouton Google */}
               <button
                 type="button"
                 onClick={handleGoogleLogin}
@@ -124,7 +132,6 @@ export default function LoginContent() {
                 Google
               </button>
 
-              {/* Bouton GitHub */}
               <button
                 type="button"
                 onClick={handleGithubLogin}
@@ -165,20 +172,18 @@ export default function LoginContent() {
           </div>
 
           {(userType === "ADMIN" || userType === "SUPERADMIN") && (
-            <>
-              <div className="mb-3">
-                <label className="form-label fw-medium">Code Admin</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={codeAdmin}
-                  onChange={(e) => setCodeAdmin(e.target.value)}
-                  placeholder="Ex: ADMIN-2025-XXXX"
-                  required
-                  disabled={loading}
-                />
-              </div>
-            </>
+            <div className="mb-3">
+              <label className="form-label fw-medium">Code Admin</label>
+              <input
+                type="text"
+                className="form-control"
+                value={codeAdmin}
+                onChange={(e) => setCodeAdmin(e.target.value)}
+                placeholder="Ex: ADMIN-2025-XXXX"
+                required
+                disabled={loading}
+              />
+            </div>
           )}
 
           {userType === "CANDIDATE" && (

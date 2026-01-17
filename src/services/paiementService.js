@@ -4,25 +4,38 @@ import api from './api.js';
  * Créer un paiement et générer le reçu
  * @param {Object} paiementData
  */
+/**
+ * 1. INITIALISER LE PAIEMENT
+ * Envoie la demande de paiement (Push OTP Campay)
+ * @returns { externalReference, message }
+ */
 export const createPaiement = async (paiementData) => {
-  console.log('[createPaiement] Début de la création du paiement...');
-  console.log('[createPaiement] Données envoyées :', paiementData);
-
+  console.log('[createPaiement] Initialisation du paiement Campay...');
   try {
-    console.log('[createPaiement] Appel de l\'API /paiement...');
     const response = await api.post('/paiement', paiementData);
-    console.log('[createPaiement] Réponse reçue de l\'API :', response);
-    console.log('[createPaiement] Données extraites :', response.data); // { paiement, recu }
+    // On reçoit maintenant { message, externalReference, paiementId }
+    console.log('[createPaiement] Demande envoyée avec référence :', response.data.externalReference);
     return response.data;
   } catch (error) {
-    console.error('[createPaiement] Erreur lors du paiement :', error);
-    if (error.response) {
-      console.error('[createPaiement] Détails de la réponse erreur :', error.response.data);
-      console.error('[createPaiement] Status code :', error.response.status);
-    }
+    console.error('[createPaiement] Erreur :', error.response?.data || error.message);
     throw error;
-  } finally {
-    console.log('[createPaiement] Fin de la fonction createPaiement.');
+  }
+};
+/**
+ * 2. VÉRIFIER LE STATUT (POLLING)
+ * À appeler régulièrement pour savoir si le reçu est enfin prêt
+ * @param {string} externalReference 
+ */
+export const checkPaiementStatus = async (externalReference) => {
+  try {
+    // On appelle la nouvelle route du controller
+    const response = await api.get(`/paiement/check-status/${externalReference}`);
+    
+    // Si status est 'SUCCESSFUL', response.data contiendra le reçu
+    return response.data; 
+  } catch (error) {
+    console.error('[checkStatus] Erreur lors de la vérification :', error);
+    throw error;
   }
 };
 
